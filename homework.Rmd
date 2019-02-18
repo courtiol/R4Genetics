@@ -1,0 +1,123 @@
+---
+title: ''
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+___
+# Homework
+
+___
+
+The file `lynx.gen` in the data folder contains microsatellite data for eight Eurasian lynx populations.
+
+Here's a pretty pic, so we know what we're working on.
+
+![Eurasian lynx, from wikimedia.org](images/lynx.jpg)
+
+___
+
+This large felid used to occur throughout Europe, but was virtually extinct in central and western Europe by the 19th century. 
+
+In an effort to re-establish the species, lynx were re-introduced in some EU countries in the last decades.
+
+You can see their distribution here on the IUCN webpage: https://www.iucnredlist.org/species/12519/121707666
+
+___
+
+Re-introductions frequently involve only a small number of animals. Especially, if they are dangerous! 
+
+Having a small _founding population_ can impact genetic diversity:
+
+- first of all, you are only introducing variation present in a few individuals
+
+- second, not all introduced animals will mate (so variation will be lost)
+
+- third, population size impacts the maintenance of variation. Small populations often lose variation due to genetic drift.
+
+
+`lynx.gen` includes data for lynx from natural populations as well as re-introduced populations.
+
+___
+
+Not all of the re-introductions were documented. We can use genetics to try and figure out where re-introduced lynx originated.
+
+___
+
+# Tasks
+
+Your mission, should you chose to accept it, is to run your `R` based analyses on this new data, and generate a report (= results + your interpretation).
+
+___
+
+Clearly mark your interpretation using _Markdown_ code. E.g. you can use __MY NAME: ....__.
+
+___
+
+__Population names__
+
+The eight populations come from:
+
+- Estonia
+- Latvia
+- Poland
+- Russia
+- Slovenia
+- Croatia
+- France
+- Slovakia
+
+They are in this order in the file.
+
+__Note:__ You will need to rename the populations in your `myData` accordingly.
+
+You can check that you have named them correctly, because the sample ID gives a clue as to where the samples are from.
+
+___
+
+Be careful to not automatically remove loci/pops/individuals, as you did previously with the data from `nancy.gen`. Only remove them if warranted.
+
+___
+
+### __Natural vs re-introduced populations__
+
+Lynx from Estonia, Latvia, Poland, Russia and Slovakia are from natural populations.
+
+Lynx from Slovenia, Croatia and France come from re-introduced populations.
+
+.
+
+__QUESTION: How do these types of populations differ?__ 
+
+___
+
+### __Subspecies__
+
+Eurasian lynx in Europe belong to two subspecies: Lynx lynx lynx, and L. l. carpathicus.
+
+_L. l. lynx:_
+
+- Estonia
+- Latvia
+- Poland
+- Russia
+
+
+_L. l. carpathicus:_
+
+- Slovenia
+- Croatia
+- Slovakia
+
+.
+
+__QUESTION: Can you tell to which subspecies does the French lynx belong?__
+
+___
+
+
