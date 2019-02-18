@@ -1,0 +1,151 @@
+---
+title: "The `genind` object cheat sheet"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+___
+
+__Note:__ We will use `myData` to refer to the `genind` object.
+
+___
+
+
+## Basic Info
+
+You can view basic information about data in a `genind` file:
+
+- number of biological samples (called individuals): `nInd(myData)`
+
+- number of loci: `nLoc(myData)`
+
+- number of pops: `nPop(myData)`
+
+- locus names: `locNames(myData)`
+
+- alleles by locus: `alleles(myData)`
+
+- biological sample names: `indNames(myData)`
+
+- population names: `popNames(myData)`
+
+- pop-ID for each sample: `pop(myData)`
+
+
+___
+
+## Rename loci
+
+Create a vector with locus names.
+
+```{r, eval=FALSE}
+newLocNames <- c("locus-1","locus-2","locus-3") ## define as many names as loci!
+```
+
+Then re-name loci in `genind` object.
+
+```{r, eval=FALSE}
+locNames(myData) <- newLocNames
+```
+
+___
+
+
+## Rename populations
+
+Create a vector with locus names.
+
+```{r, eval=FALSE}
+newPopNames <- c("pop-1","pop-2","pop-3") ## define as many names as populations!
+```
+
+Then re-name loci in `genind` object.
+
+```{r, eval=FALSE}
+popNames(myData) <- newPopNames
+```
+
+
+___
+
+## Remove individuals
+
+Create a vector of individuals to remove.
+
+```{r, eval=FALSE}
+removeInd <- c("ind-1", "ind-2", "ind-3")
+```
+
+Then remove from `genind` object.
+
+```{r, eval=FALSE}
+myData <- myData[!row.names(myData@tab) %in% removeInd]
+```
+
+___
+
+## Remove loci
+
+```{r, eval=FALSE}
+removeLoci <- c("locus-1","locus-2","locus-3")
+myData <- myData[loc = !locNames(myData) %in% removeLoci]
+```
+
+
+__Note:__ if you know the element ID of the loci to be removed, can use the following (in this example, loci 1 & 2)
+
+```{r, eval=FALSE}
+myData <- myData[loc = -c(1,2)]
+```
+
+___
+
+##Remove populations
+
+```{r, eval=FALSE}
+removePop <- c("pop-1","pop-2")
+myData <- myData[pop = !popNames(myData) %in% removePop]
+```
+
+__Note:__ if you know the element ID of the populations to be removed, can use the following (in this example, populations 1 & 2)
+
+```{r, eval=FALSE}
+myData <- myData[pop = -c(1,2)]
+```
+
+___
+
+# The `seppop()` function
+
+This function splits a `genind` object into a list, with each element of the list consisting of a `genind` object for a single population.
+
+This enables iteration through the dataset by population. E.g. by using `lapply()`.
+
+___
+
+# The `summary()` function
+
+This function provides the following information:
+
+- Number of individuals
+- Group sizes
+- Number of alleles per locus
+- Number of alleles per group
+- Percentage of missing data
+- Observed heterozygosity
+- Expected heterozygosity
+
+This information can also be called. E.g. for expected heterozygosity:
+
+```{r, eval=FALSE}
+summary(myData)$Hexp
+```
+
+
+
+
