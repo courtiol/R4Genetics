@@ -44,20 +44,35 @@ pairwise_F <- function(x, stat = "Fst", confint = TRUE, nboot = 100) {
   return(fmat)
 }
 
+## TODO: FIX BUG? -> different from outcomes of propShared() but not sure why...
 similarity <- function(x, id1, id2) {
   idA <- x@tab[id1, ]
   idB <- x@tab[id2, ]
-  idA_clean <- names(idA)[!is.na(idA) & idA != 0]
-  idB_clean <- names(idB)[!is.na(idB) & idB != 0]
-  comp <- c(distinct = length(setdiff(idA_clean, idB_clean)), total = length(unique(c(idA_clean, idB_clean))))
-  comp <- c(comp, common = comp[["total"]] - comp[["distinct"]])
-  ratio <- comp[[3]] / comp[[2]]
-  data.frame(id1 = id1, id2 = id2, distinct = comp[[1]],
-             common = comp[[3]], total = comp[[2]], ratio = ratio,
-             stringsAsFactors = FALSE)
+  allelesA <- table(rep(names(idA), idA))
+  allelesA <- rep(names(allelesA), allelesA)
+  allelesB <- table(rep(names(idB), idB))
+  allelesB <- rep(names(allelesB), allelesB)
+  comparison <- do.call("rbind", lapply(locNames(x), function(locus) {
+    A <- unique(allelesA[grepl(locus, allelesA)])
+    B <- unique(allelesB[grepl(locus, allelesB)])
+    total <- length(unique(c(A, B)))
+    distinct <- length(c(setdiff(A, B), setdiff(B, A)))
+    common <- total - length(c(setdiff(A, B), setdiff(B, A)))
+    return(data.frame(locus, total, distinct, common))
+  }))
+  comparison_summary <- apply(comparison[, c("total", "distinct", "common")], 2, sum)
+  comparison_summary <- data.frame(id1 = id1, id2 = id2,
+                                   distinct = comparison_summary["distinct"],
+                                   common = comparison_summary["common"],
+                                   total = comparison_summary["total"],
+                                   ratio = comparison_summary["common"]/comparison_summary["total"],
+                                   stringsAsFactors = FALSE)
+  comparison_summary
 }
 
-#similarity(myData, id1 = "N7", id2 = "N145")
+#similarity(myData, id1 = "N7", id2 = "N142")
+#propShared(myData[pop = 1])["N7", "N142"]
+#data.frame(as.loci(myData[pop = 1, ]))[c(1,3), ]
 
 ##TODO: optimise and add pop
 pairwise_similarity <- function(x) {
@@ -94,5 +109,6 @@ pairwise_similarity <- function(x) {
   return(res)
 }
 
-#pairwise_similarity(myData[pop = 1])
-#lapply(seppop(myData), pairwise_similarity)
+#test <- pairwise_similarity(myData[pop = 1])
+#res <- cbind(test, ratio2 = propShared(myData[pop = 1])[cbind(test[, 1], test[, 2])])
+#plot(res$ratio, res$ratio2)
