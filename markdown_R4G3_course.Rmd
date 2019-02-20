@@ -80,6 +80,7 @@ For example if you type `1 + 1` within a chunk, it will be displayed as:
 1 + 1
 ```
 
+
 Then, to evaluate the chunck, just press CTRL-R after having put your mouse cursor inside the chunck (anywhere).
 
 You can learn more about `R` Markdown on [this online book]( https://bookdown.org/yihui/rmarkdown/) or if you already know a little, the [R Studio cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf) will help you to keep it all in mind. 
@@ -155,7 +156,7 @@ In the folder `data` in this `R` Studio project you can find the genepop file ca
 We will create an `R` object that contains the data in nancycats.gen using the `read.genepop()` function of `adegenet`. Here we need to provide the path of the file as `"/data/nancycats.gen"` using `file =`, and some information about how microsatellite data is encoded in the file using `ncode =`. (And here we also set the argument `quiet =` but you don't have to, this is just to shorten this document by not displaying some messages.)
 
 ```{r read genepop files}
-myData <- read.genepop(file = "data/nancycats.gen", ncode = 3, quiet = TRUE)
+myData <- read.genepop(file = "data/nancycats.gen", ncode = 3)
 ```
 
     Why did we use ncode = 3 ?
@@ -231,7 +232,8 @@ Some of the accessors can also be used to redefine some information (to handle w
 ```{r accessors for replacement}
 #let's give the pops some names:
 
-myPops <- c("Pop1","Pop2","Pop3","Pop4","Pop5","Pop6","Pop7", "Pop8")
+#myPops <- c("Pop1","Pop2","Pop3","Pop4","Pop5","Pop6","Pop7", "Pop8")
+myPops <- paste0("Pop", 1:nPop(myData))
 popNames(myData) <- myPops
 popNames(myData)
 pop(myData)
@@ -305,6 +307,14 @@ genotype_curve(myData)
 
     How many loci do we *need* in order to discriminate our genotypes?
 
+__Geeky note:__ you can get the exact numbers:
+
+```{r genotype curve in details}
+gencurv <- genotype_curve(myData)
+apply(gencurv, 2, range)
+```
+
+
 As missing data is concentrated in a few loci and populations, rather than being thinly spread throughout the dataset, we can remove the worst offenders: a locus (fca8) and a population (Pop8).
 
 We can 'drop' a population from the `genind` object using the following code, if we know the number (ID) of the population in the list of populations.
@@ -321,7 +331,7 @@ removePop <- c("Pop8")
 myData <- myData[pop = !popNames(myData) %in% removePop]
 ```
 
-Removing loci from a `genind` object works in a similar fashion. If you know the number (ID) of a locus, then you can use the short code `myData[loc=-c(1)]`. But again, it is better to use names.
+Removing loci from a `genind` object works in a similar fashion. If you know the number (ID) of a locus, then you can use the short code `myData[loc = -c(1)]`. But again, it is better to use names.
 
 
 ```{r remove locus}
@@ -383,7 +393,7 @@ myMLG[lengths(myMLG) > 1]
 As we do not want to include replicates of samples in our data, we should now remove one of each replicated genotype. We will remove N450, N463, and N468.
 
 ```{r droping mlg}
-myData <- myData[!row.names(myData$tab) %in% c("N450","N463","N468")]
+myData <- myData[!indNames(myData) %in% c("N450","N463","N468")]
 myData
 ```
 
@@ -397,8 +407,8 @@ __Geeky note:__
 If you have to remove a lot of samples, you can do it easily by replacing the previous call by:
 
 ```{r droping many loci, eval = FALSE}
-samplesToRemove <- unlist(lapply(myMLG[lengths(myMLG) > 1], function(x) x[-1]))
-myData <- myData[!row.names(myData$tab) %in% samplesToRemove]
+samplesToKeep <- unlist(lapply(myMLG, function(x) x[1]))
+myData <- myData[indNames(myData) %in% samplesToKeep]
 ```
 ___
 ## Ploidy
@@ -407,6 +417,8 @@ ___
 
 ```{r ploidy}
 head(info_table(myData, type = "ploidy"))
+table(info_table(myData, type = "ploidy"), useNA = "always") ## counts different values
+nLoc(myData) * nInd(myData) ## total
 ```
 
     How many alleles expect in a tetraploid?
@@ -436,8 +448,13 @@ ___
 You can easily explore genetic differences using our home made little function:
 
 ```{r pairwise_similarity}
+#all_pairwise <- pairwise_similarity(myData)
+#hist(all_pairwise$ratio)
 lapply(seppop(myData), function(x) head(pairwise_similarity(x)))
+par(mfrow = c(3, 3))
+lapply(seppop(myData), function(x) hist(pairwise_similarity(x)$ratio, xlim = c(0, 1)))
 # lapply(seppop(myData), pairwise_similarity) ## for all
+par(mfrow = c(1, 1))
 ```
 
 ___
@@ -472,7 +489,7 @@ ___
 
 3. Meiosis is fair.
 
-4. There is no  new genetic material (__no mutation__).
+4. There is no new genetic material (__no mutation__).
 
 5. There is no gene flow (__no migration__).
 
@@ -580,6 +597,8 @@ To apply the HWE test with `hw.test()` to every item in the list (ie every popul
 
 ```{r HWE tested per pop}
 lapply(seppop(myData), hw.test)
+unlist(lapply(seppop(myData), nInd)) ## careful: pop size differ
+# lapply(seppop(myData), function(x) hw.test(x)) ## SAME THING
 ```
 
 Some loci, in some populations, are still not in HWE.
@@ -614,6 +633,7 @@ What if we look at the same test per population? To answer this question, we use
 
 ```{r index of association per pop}
 lapply(seppop(myData), ia, sample = 999)
+# lapply(seppop(myData), function(x) ia(x, sample = 999)) ## SAME THING
 ```
 
 In some populations we observe significant LD.
@@ -628,19 +648,21 @@ pair.ia(seppop(myData)[["Pop7"]])
 
 We can see that LD is not the same for all pairs of loci. Or can we? (Dany cannot!)
 
-Let us change the plot so that it is easier for colour-blind people to see. For this we add some additional arguments for colour: `low="black"` and `high="green"`.
+Let us change the plot so that it is easier for colour-blind people to see. For this we add some additional arguments for colour: `low = "black"` and `high = "green"`.
 
 
 ```{r plot pair ia}
-lapply(seppop(myData)[7], pair.ia, low = "black", high = "green")
+pair.ia(myData[pop = "Pop7"], low = "black", high = "green")
 ```
 
 Much better ;)
 
-
+```{r plot pair ia all pop}
+lapply(seppop(myData), pair.ia, low = "black", high = "green")
+```
 ___
 
-## Descriptive statistics
+# Descriptive statistics
 
 There are some typical descriptive statistics you will find in most population genetics papers. These __summary statistics__ give us an overview of some important features of populations under study.
 
@@ -714,7 +736,8 @@ We can also visualize how observed heterozygosity is different from expected het
 If you remember from before, we saw that loci were not in HWE over all populations.
 
 ```{r plot expected minus observed heterozygozity}
-barplot(heteroz$diff, main = "Heterozygosity: expected-observed",
+barplot(heteroz$diff, names.arg = rownames(heteroz),
+        main = "Heterozygosity: expected-observed",
         xlab = "locus", ylab = "Hexp - Hobs", font.lab = 2)
 ```
 
@@ -742,8 +765,9 @@ Now let's consider observed and expected heterozygosity by population. Here, we 
 `adegenet` conveniently provides us with a funtion to calculate this for expected heterozygosity with `Hs()`.
 
 ```{r expected heterozygosity using Hs}
-Hs(myData)   
+Hs(myData)
 ```
+<!-- TODO: write Hobs for adegenet -->
 
 To obtain observed heterozygosity there is no short cut (yet), so we need to use `lapply()` and `seppop()` again. Here we will calculate the mean of `$Hobs` per population in `myData`. As the output of `seppop` is a list, we also use `unlist()` to get a simple vector.
 
@@ -802,6 +826,7 @@ ___
 How are these linked?
 
 ![F-statistics, from https://en.wikipedia.org/wiki/F-statistics](images/F-statistics.png)
+
  - I = individual
  - S = sub-population
  - T = total-population
@@ -839,6 +864,12 @@ $F_{ST} = (0.5 - 0) / 0.5 = 1.0$
 ___
 
 __Note:__ this has been a simple exploration of how F-statistics are calculated. This has been expanded upon, and not all software or `R` packages calculate F-stats in the same way. For example, some account for factors such as how individuals disperse (island model vs stepping-stone model), the mutation process (infinite alleles model vs step-wise mutation model) and other bias adjusters (e.g. taking into account sampling bias). It is thus important to understand and report which method you use.
+
+To cite a package:
+```{r citation pegas}
+citation(package = "pegas")
+packageVersion("pegas") ## don't forget to cite the version number!
+```
 
 ___
 
@@ -895,6 +926,8 @@ For now, there is no simple solution to compute pairwise Fst in R, but here is a
 pairwise_F(myData, confint = FALSE) ## without Confidence Interval
 pairwise_Fst <- pairwise_F(myData, confint = TRUE) ## with CI
 lapply(pairwise_Fst, round, digit = 2) ## output after rounding with 2 digits
+
+levelplot(pairwise_Fst$mean, col.regions = rev(grey.colors(30)))
 ```
 
 ___
@@ -914,6 +947,10 @@ apply(private_alleles(myData), 1, sum) ## number of private alleles per pop
 
 Private alleles will impact measures of differentiation between populations. Especially, if their frequency is high (i.e., if they are common).
 
+
+```{r nb of alleles vs pop size}
+plot(summary(myData)$pop.n.all ~ summary(myData)$n.by.pop, xlab = "Pop size", ylab = "Number of alleles", las = 1)
+```
 ___
 
 # Trees & principal component analysis
@@ -1032,7 +1069,7 @@ This is how you run a PCA:
 
 ```{r pca}
 myData_matrix <- scaleGen(myData, center = FALSE, scale = FALSE, NA.method = "mean")
-mypca <- dudi.pca(myData_matrix, center = TRUE, scale = TRUE, scannf = FALSE, nf = Inf)
+mypca <- dudi.pca(myData_matrix, center = TRUE, scale = FALSE, scannf = FALSE, nf = Inf)
 ```
 
 ### What does the PCA do?
