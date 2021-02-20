@@ -93,19 +93,19 @@ ___
 
 ```{r, eval=FALSE}
 removeLoci <- c("locus-1","locus-2","locus-3")
-myData <- myData[loc = !locNames(myData) %in% removeLoci]
+myData <- myData[loc = !locNames(myData) %in% removeLoci, drop = TRUE]
 ```
 
 
 __Note:__ if you know the element ID of the loci to be removed, can use the following (in this example, loci 1 & 2)
 
 ```{r, eval=FALSE}
-myData <- myData[loc = -c(1,2)]
+myData <- myData[loc = -c(1,2), drop = TRUE]
 ```
 
 ___
 
-##Remove populations
+## Remove populations
 
 ```{r, eval=FALSE}
 removePop <- c("pop-1","pop-2")
