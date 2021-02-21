@@ -855,7 +855,8 @@ This can be easily plotted with `lattice`:
 ```{r plot heteroz matrix}
 levelplot(heteroz_matrix, col.regions = viridis(100),
           main = "Heterozygosity: expected-observed",
-          xlab = "Locus", ylab = "Population", scales=list(x=list(rot=90)))
+          xlab = "Locus", ylab = "Population",
+          scales = list(x = list(rot = 90)))
 ```
 
 ------------------------------------------------------------------------
