@@ -279,7 +279,7 @@ myData_loci <- genind2loci(myData) # or as.loci(myData)
 myData_loci
 ```
 
-The `loci` format is more simple than the `geneind` format (and so what you can do with it is more limited).
+The `loci` format is more simple than the `genind` format (and so what you can do with it is more limited).
 
 ------------------------------------------------------------------------
 
@@ -384,7 +384,7 @@ Now let's check the new version of `myData`:
 myData
 ```
 
-LEt's also rerun `info_table()` to see what's changed:
+Let's also rerun `info_table()` to see what's changed:
 
 ```{r new info table}
 info_table(myData, plot = TRUE, low = "white")
@@ -634,13 +634,13 @@ Consider two populations:
 >           Pop1   50     0     0
 >           Pop2    0     0    50
 
-Here, each population at the HWE.
+Here, each population is in HWE.
 
 However, if we treat them as a single population, there are no heterozygotes, and this merged-population is not in HWE.
 
 ------------------------------------------------------------------------
 
-Let's check by population. We will split `myData` by population using the `seppop` function. This creates a list of `genind` objects, with every entry in the list consisting of a population.
+Let's check our data by population. We will split `myData` by population using the `seppop` function. This creates a list of `genind` objects, with every entry in the list consisting of a population.
 
 To apply the HWE test with `hw.test()` to every item in the list (ie every population), we use (as above) the function `lapply()`.
 
@@ -855,7 +855,7 @@ This can be easily plotted with `lattice`:
 ```{r plot heteroz matrix}
 levelplot(heteroz_matrix, col.regions = viridis(100),
           main = "Heterozygosity: expected-observed",
-          xlab = "Locus", ylab = "Population")
+          xlab = "Locus", ylab = "Population", scales=list(x=list(rot=90)))
 ```
 
 ------------------------------------------------------------------------
@@ -889,13 +889,13 @@ We will focus on the two most common F-statistics: $F_{IS}$ and $F_{ST}$.
 -   $F_{IS}$ is known as the **inbreeding coefficient**.
 
     -   this essentially measures departures from random-mating.
-    -   how does heterozygosity in individuals compare to that in the subpopulation?
+    -   how does heterozygosity in individuals compare to that in the sub-population?
     -   $F_{IS} = (H_S - H_I)/H_S$
 
 -   $F_{ST}$ is known as the **fixation index**.
 
-    -   measures the extent of genetic differentiation among subpopulations.
-    -   how is heterozygosity in the subpopulation reduced relative to the total population.
+    -   measures the extent of genetic differentiation among sub-populations.
+    -   how is heterozygosity in the sub-population reduced relative to the total population.
     -   $F_{ST} = (H_T - H_S)/H_T$
 
 Let's calculate $F_{ST}$ for our previous example.
@@ -1054,7 +1054,7 @@ It is not surprising that we have come up with ways to visualize this kind of in
 
 Two very common ways are **trees** (or networks) and **PCA**.
 
-One benefit of displaying information in this manner is that we can see if there are groupings of individuals that are more similar to eachother than they are to other individuals.
+One benefit of displaying information in this manner is that we can see if there are groupings of individuals that are more similar to each other than they are to other individuals.
 
 ------------------------------------------------------------------------
 
@@ -1066,7 +1066,7 @@ It is, essentially, a measure of "how similar are two genotypes", with a value r
 
 `adegenet` has a function to calculate this: `propShared()`.
 
-The output of this function is a matrix with dimensions: no.of.samples x .no.of.samples. This is a bit too much to show on the screen if we consider the whole dataset of 133 samples!
+The output of this function is a matrix with dimensions: no.of.samples x no.of.samples. This is a bit too much to show on the screen if we consider the whole dataset of 133 samples!
 
 Let us get the proportion of shared alleles among samples in Pop1 and display the information for the first 5 individuals:
 
@@ -1087,10 +1087,10 @@ mynj
 
 We have reconstructed a NJ tree based on the distance matrix. But we did not plot it!
 
-For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `nj()` was coded so that we can use `plot()`). We have several options for the type of tree to be plotted using `type =`, where we will set *unrooted*.
+For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `nj()` was coded so that we can use `plot()`). We have several options for the type of tree to be plotted using `type =`, where we will set *unrooted*. Using `cex =` we can change the font-size of the sample names.
 
 ```{r plot unrooted}
-plot(mynj, type = "unrooted")
+plot(mynj, type = "unrooted", cex = 0.8)
 ```
 
 ## Other distance measures
@@ -1103,16 +1103,16 @@ Let's try another measure that makes no assumptions: *Prevosti's distance*, whic
 
 ```{r plot prevosti small}
 mynj_prevosti <- nj(prevosti.dist(seppop(myData)[["Pop1"]]))
-plot(mynj_prevosti, type = "unrooted")
+plot(mynj_prevosti, type = "unrooted", cex = 0.8)
 ```
 
-**Note:** we did not need to use `1 -` in this case, because the function `prevosti.dist()` directly provide a distance.
+**Note:** we did not need to use `1 -` in this case, because the function `prevosti.dist()` directly provides a distance.
 
 Let us compare the two trees we just made to see if they match:
 
 ```{r co-phylogenies, fig.width=10}
 cophyloplot(mynj, mynj_prevosti,
-            assoc =  cbind(mynj$tip.label, mynj_prevosti$tip.label))
+            assoc =  cbind(mynj$tip.label, mynj_prevosti$tip.label), cex = 0.8)
 ```
 
 ***Are you happy with that?***
@@ -1121,7 +1121,7 @@ Now that we know how to make a NJ tree for a small dataset, we can do it for all
 
 ```{r plot prevosti big}
 bignj <- nj(prevosti.dist(myData))
-plot(bignj, type = "unrooted")
+plot(bignj, type = "unrooted", cex = 0.8)
 ```
 
 **Geeky note:** we can improve this plot by plotting colours and changing the type of tree. Here a possibility would be a "fan" plot:
@@ -1211,8 +1211,7 @@ add.scatter.eig(mypca$eig[1:10], xax = 1, yax = 2, ratio = 0.15)
 
 ## DAPC (Discriminant Analysis of Principal Components)
 
-The PCA does not force the group to be different, it just shows the overall structure.
-In contrast, the DAPC is a method that allows to explore whether some combinations of alleles would allows the characterisation of distinct groups.
+The PCA does not force the group to be different, it just shows the overall structure. In contrast, the DAPC is a method that allows to explore whether some combinations of alleles would allows the characterisation of distinct groups.
 
 Here is an example:
 
@@ -1222,7 +1221,7 @@ dapc1 <- dapc(myData, pop = myclusters$grp, n.pca = Inf, n.da = Inf)
 scatter(dapc1)
 ```
 
-So yes, it seems that it is possible to create groups... but it is not immediatly clear what these groups correspond to in this dataset.
+So yes, it seems that it is possible to create groups... but it is not immediately clear what these groups correspond to in this dataset.
 
 So let's display the original populations on top of the plot:
 
@@ -1239,3 +1238,6 @@ compoplot(dapc1, show.lab = TRUE, legend = FALSE, cex.names = 0.4,
 ```
 
 # THE END
+
+
+
