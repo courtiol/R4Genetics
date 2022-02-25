@@ -70,8 +70,8 @@ knitr::purl("R4G_course.Rmd")
 Just write plain text in the script. You can use different number of stars to indicate:
 
 -   `*italic*` -\> *italic*
--   `*bold*` -\> **bold**
--   `**both**` -\> ***both***
+-   `**bold**` -\> **bold**
+-   `***both***` -\> ***both***
 
 ### Basic `knitr` syntax
 
@@ -81,6 +81,10 @@ For example if you type `1 + 1` within a chunk, it will be displayed as:
 
 ```{r one plus one}
 1 + 1
+```
+
+```{r}
+2 + 2
 ```
 
 Then, to evaluate the chunk, just press CTRL-R after having put your mouse cursor inside the chunk (anywhere).
@@ -160,7 +164,7 @@ In the folder `data` in this `R` Studio project you can find the genepop file ca
 We will create an `R` object that contains the data in `microbov_small.gen` using the `read.genepop()` function of `adegenet`. Here we need to provide the path of the file as `"/data/microbov_small.gen"` using `file =`, and some information about how microsatellite data is encoded in the file using `ncode =`. (And here we also set the argument `quiet =` but you don't have to, this is just to shorten this document by not displaying some messages.)
 
 ```{r read genepop files}
-myData <- read.genepop(file = "data/microbov_small.gen", ncode = 3, quiet = TRUE)
+myData <- read.genepop(file = "data/microbov_small.gen", ncode = 3, quiet = FALSE)
 ```
 
 ***Why did we use `ncode = 3`?***
@@ -437,8 +441,9 @@ myMLG[lengths(myMLG) > 1]
 
 As we do not want to include replicates of samples in our data, we should now remove one of each replicated genotype. We will remove `AFBIZEB9483`, `AFBIBOR9523`, and `AFBTSOM9374`
 
-```{r droping mlg}
-myData <- myData[!indNames(myData) %in% c("AFBIZEB9483", "AFBIBOR9523","AFBTSOM9374"), drop = TRUE]
+```{r dropping mlg}
+removeInd <- c("AFBIZEB9483", "AFBIBOR9523","AFBTSOM9374")
+myData <- myData[!indNames(myData) %in% removeInd, drop = TRUE]
 myData
 ```
 
@@ -467,6 +472,10 @@ myData <- myData[indNames(myData) %in% samplesToKeep, drop = TRUE]
 head(info_table(myData, type = "ploidy"), n = 2)
 ```
 
+***How many alleles expect in a tetraploid?***
+
+***Could this number be 1 for a diploid?***
+
 ```{r ploidy 2}
 table(info_table(myData, type = "ploidy"), useNA = "always") ## counts different values
 ```
@@ -476,10 +485,6 @@ The numbers make sense:
 ```{r ploidy 3}
 nLoc(myData) * nInd(myData)
 ```
-
-***How many alleles expect in a tetraploid?***
-
-***Could this number be 1 for a diploid?***
 
 ------------------------------------------------------------------------
 
@@ -514,10 +519,14 @@ pairwise_similarity(myData, pop = "Pop1")
 We can represent the results visually:
 
 ```{r pairwise_similarity2, results = "hide"}
-lapply(unique(myData@pop), function(pop) hist(pairwise_similarity(myData, pop = pop, as_vector = TRUE), xlim = c(0, 1))) # don't forget as_vector = TRUE
+lapply(popNames(myData), function(pop) hist(pairwise_similarity(myData, pop = pop, as_vector = TRUE), xlim = c(0, 1))) # don't forget as_vector = TRUE
 ```
 
 ***How would you do the same thing across all populations?***
+
+```{r}
+hist(pairwise_similarity(myData, as_vector = TRUE), xlim = c(0, 1)) # don't forget as_vector = TRUE
+```
 
 ------------------------------------------------------------------------
 
@@ -696,6 +705,7 @@ If we want to know which two loci are in LD, we can use the `pair.ia()` function
 
 ```{r pair ia}
 pair.ia(seppop(myData)[["Pop6"]])
+#pair.ia(myData[pop = 6])   # same thing
 ```
 
 We can see that LD is not the same for all pairs of loci.
@@ -1118,9 +1128,16 @@ cophyloplot(mynj, mynj_prevosti,
 
 ***Are you happy with that?***
 
+```{r, fig.width=10}
+mynj_prevosti2 <- nj(prevosti.dist(myData[pop = 1, loc = 1:7])) 
+mynj_prevosti3 <- nj(prevosti.dist(myData[pop = 1, loc = 8:14]))
+cophyloplot(mynj_prevosti2, mynj_prevosti3,
+            assoc =  cbind(sort(mynj_prevosti2$tip.label), sort(mynj_prevosti3$tip.label)), cex = 0.8)
+```
+
 Now that we know how to make a NJ tree for a small dataset, we can do it for all samples in `myData`.
 
-```{r plot prevosti big}
+```{r plot prevosti big,  fig.width=10}
 bignj <- nj(prevosti.dist(myData))
 plot(bignj, type = "unrooted", cex = 0.8)
 ```
@@ -1204,8 +1221,19 @@ There are many ways to plot a PCA, but here we are interested in projecting the 
 ```{r plot PCA 1}
 s.class(mypca$li, fac = pop(myData),
         col = rainbow(nPop(myData)), grid = FALSE, xax = 1, yax = 2, cpoint = 0)
-#s.label(mypca$li, add.plot = TRUE, boxes = FALSE, clabel = 0.5)
+s.label(mypca$li, add.plot = TRUE, boxes = FALSE, clabel = 0.5)
 add.scatter.eig(mypca$eig[1:10], xax = 1, yax = 2, ratio = 0.15)
+```
+
+Here is how each allele contribute to the axes:
+```{r contribution to dimension}
+s.arrow(mypca$co[, 1:2], boxes = FALSE, cpoint = 0.4)
+```
+
+Let's look at the contribution from private alleles:
+```{r contribution to dimension private alleles}
+private_alleles_pop6 <- colnames(private_alleles(myData))[private_alleles(myData)["Pop6",] != 0]
+s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, cpoint = 0.4)
 ```
 
 ------------------------------------------------------------------------
@@ -1217,7 +1245,7 @@ The PCA does not force the group to be different, it just shows the overall stru
 Here is an example:
 
 ```{r dapc}
-myclusters <- find.clusters(myData, n.clust = 3, n.pca = Inf) ## better not fixing n.clust and selecting it interactivelly!!!
+myclusters <- find.clusters(myData, n.clust = 2, n.pca = Inf) ## better not fixing n.clust and selecting it interactivelly!!!
 dapc1 <- dapc(myData, pop = myclusters$grp, n.pca = Inf, n.da = Inf)
 scatter(dapc1)
 ```
@@ -1239,6 +1267,3 @@ compoplot(dapc1, show.lab = TRUE, legend = FALSE, cex.names = 0.4,
 ```
 
 # THE END
-
-
-
