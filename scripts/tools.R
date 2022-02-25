@@ -98,7 +98,7 @@ similarity <- function(x, id1, id2) {
                                    common = sum(common),
                                    distinct = length(common) * 2 - sum(common),
                                    total = length(common) * 2,
-                                   ratio = sum(common)/(length(common) * 2),
+                                   ratio_common = sum(common)/(length(common) * 2),
                                    stringsAsFactors = FALSE)
   comparison_summary
 }
@@ -130,7 +130,7 @@ pairwise_similarity <- function(x, pop = NULL, as_vector = FALSE) {
                     distinct = rep(NA_real_, ncases),
                     common = rep(NA_real_, ncases),
                     total = rep(NA_real_, ncases),
-                    ratio = rep(NA_real_, ncases),
+                    ratio_common = rep(NA_real_, ncases),
                     stringsAsFactors = FALSE)
   pb <- NULL
   if (requireNamespace("progress", quietly = TRUE) & interactive()) {
