@@ -35,7 +35,7 @@ knitr::opts_chunk$set(cache = FALSE, cache.path = "knitr/cache/", fig.path = "kn
 
 -   gain familiarity with `R`
 -   understand how microsatellite data can be handled in `R`
--   perform basic genetic analyses using the packages `adegenet`, `poppr` and `pegas`
+-   perform basic genetic analyses using the packages `adegenet`, `pegas`, `poppr`, and `hierfstat`
 -   use *`R` Markdown* to produce a report of the analyses, incorporating the workflow and results
 
 ------------------------------------------------------------------------
@@ -48,7 +48,8 @@ knitr::opts_chunk$set(cache = FALSE, cache.path = "knitr/cache/", fig.path = "kn
 
 ## About this document
 
-This document is an `R` Markdown document. An `R` Markdown document is the combination of a Markdown document with chunks of `R` code in the middle that are evaluated using an `R` package called `knitr`.
+This document is an `R` Markdown document.
+An `R` Markdown document is the combination of a Markdown document with chunks of `R` code in the middle that are evaluated using an `R` package called `knitr`.
 
 `R` Markdown document can be used interactively or they can be turned into beautiful HTML document or other (e.g. PDF, Word, ...) if you click on the button "Knit" on top.
 
@@ -63,7 +64,8 @@ If you prefer to see pure R code only, just do:
 knitr::purl("R4G_course.Rmd")
 ```
 
-**Note:** it will create a file called `R4G_course.R` but it won't overwrite it if it already exists. So, if you want some changes to be taken into account, make sure you delete the `R` file beforehand (e.g., by running the first line in the chunk above).
+**Note:** it will create a file called `R4G_course.R` but it won't overwrite it if it already exists.
+So, if you want some changes to be taken into account, make sure you delete the `R` file beforehand (e.g., by running the first line in the chunk above).
 
 ### Basic Markdown syntax
 
@@ -82,37 +84,33 @@ For example if you type `1 + 1` within a chunk, it will be displayed as:
 ```{r one plus one}
 1 + 1
 ```
-
-```{r}
-2 + 2
-```
-
 Then, to evaluate the chunk, just press CTRL-R after having put your mouse cursor inside the chunk (anywhere).
 
-You can learn more about `R` Markdown on [this online book](https://bookdown.org/yihui/rmarkdown/) or if you already know a little, the [R Studio cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf) will help you to keep it all in mind.
+You can learn more about `R` Markdown on [this online book](https://bookdown.org/yihui/rmarkdown/) or if you already know a little, the [R Studio cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/rmarkdown.pdf) will help you to keep it all in mind.
 
 ------------------------------------------------------------------------
 
 ## Getting all the `R` packages ready
 
-We will use the `R` packages `adegenet`, `poppr` and `pegas` for the analyses and `ggplot2`, `lattice` and `viridisLite` for the plots. If you have already installed before, you can simply load the packages as follow:
+We will use the `R` packages `adegenet`, `pegas`, `poppr`, and `hierfstat` for the analyses and `ggplot2`, `lattice` and `viridisLite` for the plots. If you have already installed before, you can simply load the packages as follow:
 
 ```{r loading packages, message = FALSE}
 library(adegenet)
-library(poppr)
 library(pegas)
+library(poppr)
+library(hierfstat)
 library(ggplot2)
 library(lattice)
 library(viridisLite)
 ```
 
-**Note 1:** If one of the package is missing, then you must install it BEFORE loading them. So you may need to use, for ex:
+**Note 1:** If one of the package is missing, then you must install it BEFORE loading them. For example, to install `adegenet` do:
 
 ```{r installing packages, eval = FALSE}
 install.packages("adegenet")
 ```
 
-**Note 2:** To be able to "knit" the `R` Markdown, you will also need other `R` packages but try knitting and `R` Studio should do the rest for you.
+**Note 2:** To be able to "knit" the `R` Markdown, you will also need other `R` packages but try knitting and RStudio should handle the rest for you.
 
 We also add a few extra functions we coded for you:
 
@@ -128,7 +126,8 @@ source("scripts/tools.R")
 
 ## The `genepop` format
 
-We will be using a very common type of input file for microsatellite data, which was originally developed for a stand-alone program called **Genepop**. You will learn how to create a genepop file with Jörns tomorrow. Today we will use one that we have made for you.
+We will be using a very common type of input file for microsatellite data, which was originally developed for a stand-alone program called **Genepop**.
+You will learn how to create a genepop file with Jörns tomorrow. Today we will use one that we have made for you.
 
 Here is the basic structure:
 
@@ -161,10 +160,12 @@ Here is the basic structure:
 
 In the folder `data` in this `R` Studio project you can find the genepop file called `microbov_small.gen`.
 
-We will create an `R` object that contains the data in `microbov_small.gen` using the `read.genepop()` function of `adegenet`. Here we need to provide the path of the file as `"/data/microbov_small.gen"` using `file =`, and some information about how microsatellite data is encoded in the file using `ncode =`. (And here we also set the argument `quiet =` but you don't have to, this is just to shorten this document by not displaying some messages.)
+We will create an `R` object that contains the data in `microbov_small.gen` using the `read.genepop()` function of `adegenet`.
+Here we need to provide the path of the file as `"/data/microbov_small.gen"` using `file =`, and some information about how microsatellite data is encoded in the file using `ncode =`.
+(And here we also set the argument `quiet = TRUE` but you don't have to, this is just to shorten this document by not displaying some messages.)
 
 ```{r read genepop files}
-myData <- read.genepop(file = "data/microbov_small.gen", ncode = 3, quiet = FALSE)
+myData <- read.genepop(file = "data/microbov_small.gen", ncode = 3, quiet = TRUE)
 ```
 
 ***Why did we use `ncode = 3`?***
@@ -177,7 +178,8 @@ If there had been a problem with the data file (e.g. incorrectly formatted), the
 badFormat <- read.genepop(file = "data/badFormatting.gen", ncode = 3, quiet = TRUE)
 ```
 
-We "broke" this input file by including fewer locus names than data. The error message is telling us that the length of `dimnames [1]` (= number of locus names) does not correspond to the number of columns containing the data.
+We "broke" this input file by including fewer locus names than data.
+The error message is telling us that the length of `dimnames [1]` (= number of locus names) does not correspond to the number of columns containing the data.
 
 As you can see, `R` provides us a clue about what the problem is.
 
@@ -221,7 +223,7 @@ or for even more geeky details:
 print.AsIs(myData)
 ```
 
-As you will see, the `genind` object is a particular kind of list. Technically it is called a S4 object. Instead of accessing elements with `$`, when using S4 objects elements (called slots) are typically accessible with `@` (even if the programmer behind `adegenet` made it possible to use `$` anyway).
+As you will see, the `genind` object is a particular kind of list. Technically it is a S4 object. Instead of accessing elements with `$`, when using S4 objects elements (called slots) are typically accessible with `@` (even if the programmer behind `adegenet` made it possible to use `$` anyway).
 
 Since manipulating such objects is a little complicated, you should use the *accessors*, whenever available:
 
@@ -246,7 +248,7 @@ alleles(myData) # List of all alleles
 ```
 
 ```{r accessor_nAll}
-nAll(myData, onlyObserved  = TRUE) # Number of alleles
+nAll(myData, onlyObserved  = TRUE) # Number of alleles for each locus
 ```
 
 ```{r accessor_indNames}
@@ -257,7 +259,7 @@ indNames(myData) # Names of individuals
 popNames(myData) # Name of the last individual in each population
 ```
 
-Some of the accessors can also be used to redefine some information (to handle with great care):
+Some of the accessors can also be used to redefine some information (to handle with great care!):
 
 ```{r accessors for replacement}
 #let's give the pops some names:
@@ -274,20 +276,36 @@ pop(myData)
 
 ------------------------------------------------------------------------
 
+## The `data.frame` format
+
+Not all `R` packages dealing with genetics/genomics use `genind` objects (it would be convenient if they did!).
+The package `hierfstat`, for example, just uses plain `data.frame` where the first column contains the population to which the different individuals belong, and the following columns contain the genotype of the individuals (one locus per column).
+
+In general there are functions to convert one format into another.
+To convert the `genind` objects into a `data.frame` you can use `genind2hierfstat()` from the package `hierfstat`:
+
+```{r genind to df}
+myData_hierf <- genind2hierfstat(myData)
+head(myData_hierf) # Display first 6 rows
+```
+
+
+------------------------------------------------------------------------
+
 ## The `loci` format
 
-Not all `R` packages dealing with genetics/genomics use `genind` objects (it would be convenient if they did!). In particular, the package `pegas` which allows for the computation of many useful metrics relies on an alternative format called `loci`.
+The package `pegas` which allows for the computation of many useful metrics relies on an alternative format called `loci`.
 
 ```{r genind to loci}
 myData_loci <- genind2loci(myData) # or as.loci(myData)
 myData_loci
 ```
 
-The `loci` format is more simple than the `genind` format (and so what you can do with it is more limited).
+The `loci` format is more simple than the `genind` format, but a little more complex than just a naked `data.frame`.
 
 ------------------------------------------------------------------------
 
-**Geeky note:** A `loci` object is simply a traditional `data.frame` (an S3 object) with an additional *attribute* called `"locicol"`:
+**Geeky note:** A `loci` object is a `data.frame` (an S3 object) with an additional *attribute* called `"locicol"`:
 
 ```{r exploring loci objects 1}
 str(myData_loci)
@@ -311,7 +329,9 @@ Let's check some basic things about the data in `myData`.
 
 ## Missing data
 
-An important consideration for analysis is the amount of missing data in our dataset. Several types of analyses don't cope very well with missing data. In some cases this may lead to poor estimates, in other cases it may lead to samples or loci not being considered in the analysis.
+An important consideration for analysis is the amount of missing data in our dataset.
+Several types of analyses don't cope very well with missing data.
+In some cases this may lead to poor estimates, in other cases it may lead to samples or loci not being considered in the analysis.
 
 We can use `info_table()` from `poppr` to find out about missing data, and also generate a convenient plot by including `plot = TRUE`.
 
@@ -322,7 +342,7 @@ missing[order(missing$Missing, decreasing = TRUE), ] # We reorder the table to s
 ```
 
 ```{r info table plot}
-info_table(myData, plot = TRUE, low = "white")
+info_table(myData, plot = TRUE, low = "white") ## NB: run in the console for best display
 ```
 
 ------------------------------------------------------------------------
@@ -346,7 +366,8 @@ As a general rule of thumb, we try to keep missing data below 5% in order to min
 
 ***How do you think we can achieve this?***
 
-Using `genotype_curve()` we can check how many loci we need in order to discriminate our genotypes. This `poppr` function randomly samples loci without replacement and counts the number of multilocus genotypes observed.
+Using `genotype_curve()` we can check how many loci we need in order to discriminate our genotypes.
+This `poppr` function randomly samples loci without replacement and counts the number of multilocus genotypes observed.
 
 ```{r genotype curve}
 gencurv <- genotype_curve(myData)
@@ -354,7 +375,7 @@ gencurv <- genotype_curve(myData)
 
 ***How many loci do we need in order to discriminate our genotypes?***
 
-**Geeky note:** you can get the exact numbers:
+**Geeky note:** you can get the exact numbers of distinct genotypes given each number of loci considered:
 
 ```{r genotype curve in details}
 apply(gencurv, 2, range)
@@ -365,17 +386,20 @@ As missing data is concentrated in a few loci and populations, rather than being
 We can 'drop' a population from the `genind` object using the following code, if we know the number (ID) of the population in the list of populations.
 
 ```{r remove pop by index, eval = FALSE, message = FALSE}
-myData[pop = -c(7), drop = TRUE] # drop = TRUE updates the number of remaining alleles
+myData[pop = -c(7), drop = TRUE] # drop = TRUE updates the number of remaining alleles!
 ```
 
-Sometimes it is more useful to be able to remove populations by their name. For this we need a bit more code:
+Sometimes it is more useful to be able to remove populations by their name.
+For this we need a bit more code:
 
 ```{r remove pop}
 removePop <- c("Pop7")
 myData <- myData[pop = !popNames(myData) %in% removePop, drop = TRUE]
 ```
 
-Removing loci from a `genind` object works in a similar fashion. If you know the number (ID) of a locus, then you can use the short code `myData[loc = -c(1)]`. But again, it is better to use names.
+Removing loci from a `genind` object works in a similar fashion as removing a population.
+If you know the number (ID) of a locus, then you can use the short code `myData[loc = -c(1)]`.
+But again, it is better to use names.
 
 ```{r remove locus}
 removeLoc <- c("ILSTS5")
@@ -404,7 +428,7 @@ How about our ability to discriminate genotypes?
 genotype_curve(myData)
 ```
 
-***How does that compare to the previous genotype curve?***
+***How does that compare to the previous genotype accumulation curve?***
 
 ***How does the maximum value for MLG compare to the number of individuals?***
 
@@ -416,15 +440,21 @@ Depending on how we obtain our genetic samples, we may not know if we have genot
 
 For example, if we have been genotyping samples collected in a non-invasive way (e.g. hair or faeces), then we don't really have a way of knowing if we have obtained more than one sample per individual.
 
-There is an `R` package called `alleleMatch` that can investigate this in detail. However, it is no longer maintained. Thankfully, `poppr` has some basic functionality to examine this. Using `mlg()` we can check for the number of unique multilocus genotypes in `myData`.
+There is an `R` package called `alleleMatch` that can investigate this in detail.
+However, it is not activelly maintained.
+Thankfully, `poppr` has some basic functionality to examine this.
+Using `mlg()` we can check for the number of unique multilocus genotypes in `myData`.
 
 ```{r mlg}
 mlg(myData)
 ```
 
-We have 136 samples, but only 133 unique multilocus genotypes. This suggests that 3 samples correspond to replicates from the same individual(s). (We introduced that in the data on purpose to show you how to deal with such issues.)
+We have 136 samples, but only 133 unique multilocus genotypes. This suggests that 3 samples correspond to replicates from the same individual(s).
+(We introduced that in the data on purpose to show you how to deal with such issues.)
 
-**Note:** the `mlg()` function did not tell us *which* samples are the same. For this we can use `mlg.id()`. But this gives us a very long list, because it also includes the genotypes that occur only once. Let us check the beginning of the output from `mlg.id()` using `head()`:
+**Note:** the `mlg()` function did not tell us *which* samples are the same.
+For this we can use `mlg.id()`, but this gives us a very long list because it also includes the genotypes that occur only once.
+Let us check the beginning of the output from `mlg.id()` using `head()`:
 
 ```{r mlg.id}
 head(mlg.id(myData))
@@ -439,7 +469,9 @@ myMLG <- mlg.id(myData)
 myMLG[lengths(myMLG) > 1]
 ```
 
-As we do not want to include replicates of samples in our data, we should now remove one of each replicated genotype. We will remove `AFBIZEB9483`, `AFBIBOR9523`, and `AFBTSOM9374`
+As we do not want to include replicates of samples in our data, we should now remove one of each replicated genotype.
+We will remove `AFBIZEB9483`, `AFBIBOR9523`, and `AFBTSOM9374`.
+We can follow the same principle we used to remove loci and a population earlier:
 
 ```{r dropping mlg}
 removeInd <- c("AFBIZEB9483", "AFBIBOR9523","AFBTSOM9374")
@@ -458,7 +490,7 @@ Now we have 133 unique genotypes in `myData`.
 If you have to remove a lot of samples, you can do it easily by replacing the previous call by:
 
 ```{r dropping many loci, eval = FALSE}
-samplesToKeep <- unlist(lapply(myMLG, function(x) x[1]))
+samplesToKeep <- unlist(lapply(myMLG, function(x) x[1])) # Capture first occurence for each MLG
 myData <- myData[indNames(myData) %in% samplesToKeep, drop = TRUE]
 ```
 
@@ -476,8 +508,10 @@ head(info_table(myData, type = "ploidy"), n = 2)
 
 ***Could this number be 1 for a diploid?***
 
+We can summarize the results from this large table by counting the different outcomes in it:
+
 ```{r ploidy 2}
-table(info_table(myData, type = "ploidy"), useNA = "always") ## counts different values
+table(info_table(myData, type = "ploidy"), useNA = "always") # Counts different values
 ```
 
 The numbers make sense:
@@ -490,13 +524,17 @@ nLoc(myData) * nInd(myData)
 
 ## Are loci informative?
 
-Another important consideration is if our loci are variable and informative. Otherwise we're wasting time and space on keeping them! The function `informloci()` can be used to detect uninformative loci and remove them.
+Another important consideration is to check if our loci are variable and informative.
+Otherwise it is useless to keep them.
+The function `informloci()` can be used to detect uninformative loci and remove them.
 
 ```{r informloci}
 informloci(myData)
 ```
 
-In our case, all loci are informative and they are kept. If we had uninformative loci, and wanted to remove them, we would have run the following.
+The important information we just obtained is the display *"All sites polymorphic"*.
+That implies that, in our case, all loci are informative and they are kept.
+If we had uninformative loci, and wanted to remove them, we would have run the following:
 
 ```{r informloci 2, eval = FALSE}
 myData <- informloci(myData)
@@ -519,7 +557,7 @@ pairwise_similarity(myData, pop = "Pop1")
 We can represent the results visually:
 
 ```{r pairwise_similarity2, results = "hide"}
-lapply(popNames(myData), function(pop) hist(pairwise_similarity(myData, pop = pop, as_vector = TRUE), xlim = c(0, 1))) # don't forget as_vector = TRUE
+lapply(popNames(myData), function(pop) hist(pairwise_similarity(myData, pop = pop, as_vector = TRUE), main = pop, xlim = c(0, 1))) # don't forget as_vector = TRUE
 ```
 
 ***How would you do the same thing across all populations?***
@@ -602,7 +640,7 @@ If HWE assumptions are not met, evolution can happen (allele frequencies may cha
 
 Mutation, non-random mating, gene flow, genetic drift (caused by finite population size), and natural selection violate HWE assumptions and are thus "mechanisms" by which evolution may proceed.
 
-The HWE is thus the null model of micro-evolution.
+The HWE is thus the **null model** of micro-evolution.
 
 ***So is it good/bad for a locus to be in HWE?***
 
@@ -649,7 +687,9 @@ However, if we treat them as a single population, there are no heterozygotes, an
 
 ------------------------------------------------------------------------
 
-Let's check our data by population. We will split `myData` by population using the `seppop` function. This creates a list of `genind` objects, with every entry in the list consisting of a population.
+Let's check our data by population.
+We will split `myData` by population using the `seppop` function.
+This creates a list of `genind` objects, with every entry in the list consisting of a population.
 
 To apply the HWE test with `hw.test()` to every item in the list (ie every population), we use (as above) the function `lapply()`.
 
@@ -677,11 +717,14 @@ Imagine two loci that are physically very close on the same chromosome. Will all
 
 ***Do you know how this is measured?***
 
-For this reason, and many others (e.g. Fisher's runaway), it is possible that alleles at one locus may be associated with alleles at another locus. In other words, we may observe *non-random association of alleles at different loci*. This is called linkage disequilibrium.
+For this reason, and many others (e.g. Fisher's runaway), it is possible that alleles at one locus may be associated with alleles at another locus.
+In other words, we may observe *non-random association of alleles at different loci*.
+This is called linkage disequilibrium.
 
 **Why is this important?** If the dependence between loci is not recognised, the results will be biased.
 
-We can look at this with the `ia()` function of `poppr`. This function calculates an index of association over all loci in the `genind` object:
+We can look at this with the `ia()` function of `poppr`.
+This function calculates an index of association over all loci in the `genind` object:
 
 ```{r index of association}
 ia(myData, sample = 999)
@@ -689,9 +732,11 @@ ia(myData, sample = 999)
 
 Here we can see the distribution of expected association between alleles at different loci when there is no linkage (dark grey barplot), and the estimate for association among alleles in our total dataset (i.e., all loci and all pops at the same time).
 
-It appears we have a significant association across all populations.
+It appears we have a significant association between loci, at least when merging observations across all populations.
 
-What if we look at the same test per population? To answer this question, we use `seppop()` and `lapply()` as before. But now we include `ia()` and for the argument `sample`, which defines the number of permutations used to draw the distribution of the association index under the null hypothesis, we want a large number, e.g., 999:
+What if we look at the same test per population?
+To answer this question, we use `seppop()` and `lapply()` as before, but now we include the function that we want to run on eahc pop (here, `ia()`) and the arguments for such a function.
+Here, the argument `sample` defines the number of permutations used to draw the distribution of the association index under the null hypothesis; we want a large number, e.g., 999:
 
 ```{r index of association per pop}
 lapply(seppop(myData), ia, sample = 999)
@@ -701,7 +746,8 @@ In some populations we observe significant LD.
 
 ***Is this important?***
 
-If we want to know which two loci are in LD, we can use the `pair.ia()` function. Let's consider Pop6 using `seppop(myData)[["Pop6"]]`.
+If we want to know which two loci are in LD, we can use the `pair.ia()` function.
+Let's consider, for example, what happens for Pop6:
 
 ```{r pair ia}
 pair.ia(seppop(myData)[["Pop6"]])
@@ -710,11 +756,14 @@ pair.ia(seppop(myData)[["Pop6"]])
 
 We can see that LD is not the same for all pairs of loci.
 
-Let us change the plot so that it is easier for colour-blind people to see (e.g. for Dan!). For this we add some additional arguments for colour: `low = "black"` and `high = "green"`.
+Let us change the plot so that it is easier for colour-blind people to see (e.g. for Dan!).
+For this we add some additional arguments for colour: `low = "black"` and `high = "green"`.
 
 ```{r plot pair ia}
 pair.ia(myData[pop = "Pop6"], low = "black", high = "green")
 ```
+
+We now display the linkage disequilibrium for each population:
 
 ```{r plot pair ia all pop}
 lapply(seppop(myData), pair.ia, low = "black", high = "green")
@@ -724,7 +773,8 @@ lapply(seppop(myData), pair.ia, low = "black", high = "green")
 
 # Descriptive statistics
 
-There are some typical descriptive statistics you will find in most population genetics papers. These **summary statistics** give us an overview of some important features of populations under study.
+There are some typical descriptive statistics you will find in most population genetics papers.
+These **summary statistics** give us an overview of some important features of populations under study.
 
 We will focus on the basic ones describing variation **within** populations and describing variation **between** populations.
 
@@ -764,7 +814,7 @@ In this two-allele system, heterozygosity is highest at $p = 0.5$. Let's visuali
 freqP <- seq(from = 0, to = 1, by = 0.01)
 freqQ <- 1 - freqP
 
-plot(2*freqP*freqQ ~ freqQ, type = "l",
+plot(2*freqP*freqQ ~ freqQ, type = "l", las = 1,
      ylab = "frequency of heterozygote genotypes",
      xlab = "frequency of allele 'a'")
 text(0, 0, "AA")
@@ -782,7 +832,8 @@ As you can imagine, this becomes more complex when there are more alleles per lo
 
 Now we will calculate the *observed heterozygosity* in our populations, as well as the *expected heterozygosity* if the populations are in HWE.
 
-For this we use the `summary()` function from `adegenet`. We can extract the observed heterozygosity using `$Hobs` and the expected heterozygosity using `$Hexp`.
+For this we use the `summary()` function from `adegenet`.
+We can extract the observed heterozygosity using `$Hobs` and the expected heterozygosity using `$Hexp`.
 
 To make life convenient, you can extract the values for every locus, place them in a `data.frame` and compute the difference:
 
@@ -824,24 +875,19 @@ ggplot(heteroz, aes(y = Hexp, x = Hobs)) +
 
 Now let's consider observed and expected heterozygosity by population. Here, we will focus on the mean across loci.
 
-`adegenet` conveniently provides us with a function to calculate this for expected heterozygosity with `Hs()`.
+`hierfstat` conveniently provides us with functions to calculate this:
 
 ```{r expected heterozygosity using Hs}
 Hs(myData)
 ```
-
-To obtain observed heterozygosity there is no short cut (yet), so we need to use `lapply()` and `seppop()` again. Here we will calculate the mean of `$Hobs` per population in `myData`. As the output of `seppop` is a list, we also use `unlist()` to get a simple vector.
-
-```{r observed heterozygosity using summary}
-Hobs <- lapply(seppop(myData), function(x) mean(summary(x)$Hobs))
-Hobs <- unlist(Hobs)
-Hobs
+```{r observed heterozygosity using Ho}
+Ho(myData)
 ```
 
 Again, we can store the results for observed and expected heterozygosity into a `data.frame` and compute the difference:
 
 ```{r expected and observed heterozygosity per pop}
-heteroz_per_pop <- data.frame(Hexp = Hs(myData), Hobs = Hobs)
+heteroz_per_pop <- data.frame(Hexp = Hs(myData), Hobs = Ho(myData))
 heteroz_per_pop$diff <- heteroz_per_pop$Hexp - heteroz_per_pop$Hobs
 heteroz_per_pop
 ```
@@ -873,7 +919,8 @@ levelplot(heteroz_matrix, col.regions = viridis(100),
 
 ## F-statistics
 
-An effect of population subdivision on genetic variation is the reduction in observed heterozygotes. As we have seen previously (Wahlund effect).
+An effect of population subdivision on genetic variation is the reduction in observed heterozygotes.
+As we have seen previously (Wahlund effect).
 
 The extent of reduction in observed heterozygotes can be used to quantify the level of differentiation between sub-populations.
 
@@ -929,94 +976,89 @@ $F_{ST} = (0.5 - 0) / 0.5 = 1.0$
 
 ------------------------------------------------------------------------
 
-**Note:** this has been a very simple exploration of how F-statistics are calculated. This has been expanded upon, and not all software or `R` packages calculate F-stats in the same way. For example, some account for factors such as how individuals disperse (island model vs stepping-stone model), the mutation process (infinite alleles model vs step-wise mutation model) and other bias (e.g. taking into account sampling bias). It is thus important to report (and if possible understand) which method you use:
+**Note:** this has been a very simple exploration of how F-statistics are calculated.
+This has been expanded upon, and not all software or `R` packages calculate F-stats in the same way.
+For example, some account for factors such as how individuals disperse (island model vs stepping-stone model), the mutation process (infinite alleles model vs step-wise mutation model) and other bias (e.g. taking into account sampling bias).
+It is thus important to report (and if possible understand) which method you use.
+Do indicate in your paper/thesis which functions you used, from which package to avoid any ambiguity.
 
 To cite a package:
 
-```{r citation pegas}
-citation(package = "pegas")
-packageVersion("pegas") ## don't forget to cite the version number!
+```{r citation hierfstat}
+citation(package = "hierfstat")
+packageVersion("hierfstat") ## don't forget to cite the version number!
 ```
 
 ------------------------------------------------------------------------
 
 Now let's get back to `myData`.
 
-We can use the `Fst()` function of the `pegas` package to calculate F-stats by locus, over all populations. But it requires the `loci` format, so we need to use `as.loci()` to transform our data.
+The package `hierfstat` provide a function that directly computes the $F_{IS}$ and $F_{ST}$, as well as other things (see `?basic.stats` for details).
 
-```{r Fstats}
-Fst(as.loci(myData))
+```{r basic stats hierf}
+basic.stats(myData)
+```
+However this is not exactly what we need since the default display shows metrics computed over populations.
+
+------------------------------------------------------------------------
+
+For the $F_{IS}$ we want one value per population.
+We can derive that information from `basic.stats()` with a little trick:
+
+```{r basic stats Fis}
+Fis <- colMeans(basic.stats(myData)$Fis) # close but not equal to (Hs(myData) - Ho(myData))/Hs(myData)
+Fis
+```
+These pairwise $F_{IS}$ values correspond to the mean of $F_{IS}$ values over all loci.
+
+As any estimate, the $F_{IS}$ is measured with some uncertainty.
+To represent this uncertainty, we can compute the 95$\%$ confidence interval of the mean $F_{IS}$ value using a simple bootstrap:
+
+```{r Fis boot}
+Fis_CI <- boot.ppfis(myData, nboot = 999)
+Fis_CI
 ```
 
-***How would you interpret these values?***
+We can combine and format the information in a single table:
 
-We can also build a `data.frame` with all the information we need:
-
-```{r results heteroz and Fstats}
-data.frame(Hobs = summary(myData)$Hobs, Hexp = summary(myData)$Hexp, Fst(as.loci(myData))[, c("Fst", "Fis")])
+```{r Fis all}
+Fis_table <- data.frame(Fis = Fis, Fis_CI$fis.ci)
+colnames(Fis_table)[2:3] <- c("lwr", "upr")
+Fis_table$lwr[Fis_table$lwr < 0] <- 0 # lwr than 0 does not make sense (bootstrap artifact)
+Fis_table
 ```
 
-Often we are also interested in specific $F_{ST}$ values between pairs of populations. Genetic differentiation among all populations does not need to be equal.
+------------------------------------------------------------------------
 
-Let's look at $F_{ST}$ between pops 1 and 2. We will extract the first two populations from `myData` and turn this into `loci` format using `as.loci()`.
+Concerning $F_{ST}$ values, we want values between pairs of populations.
+For this, we need to use another function from `hierfstat` called `pairwise.WCfst`:
 
-```{r two pops}
-myData_pop12 <- as.loci(myData[pop = c("Pop1", "Pop2")])
-```
-
-Now we estimate $F_{ST}$ over all loci, obtained by using `mean()`, and constrain ourselves to the column of the output with the $F_{ST}$ values:
-
-```{r mean Fst two pops}
-mean(Fst(myData_pop12)[, "Fst"])
-```
-
-Now we have a measure of differentiation between Pop1 and Pop2.
-
-This pairwise $F_{ST}$ value is the mean of $F_{ST}$ values of all loci. We can check $F_{ST}$ for every locus using `Fst(myData_pop12)[, "Fst"]`.
-
-As any estimate, the $F_{ST}$ is measured with some uncertainty. To represent this uncertainty, we can compute the 95$\%$ confidence interval of the mean $F_{ST}$ value using a "very simple" bootstrap (more advanced implementations are possible):
-
-```{r bootstrapping Fst}
-Fst_boot <- replicate(100, {
-  myData_pop12 <- myData_pop12[, c(1, sample(attr(myData_pop12, "loci"), replace = TRUE)[-1])]
-  mean(Fst(myData_pop12)[, "Fst"])
-})
-quantile(Fst_boot, c(0.025, 0.975))
-```
-
-Let's plot the distribution of $F_{ST}$ we just obtained:
-
-```{r bootstrapping Fst plot, results='hold'}
-hist(Fst_boot, xlim = c(0, 0.2))
-abline(v = 0, col = 2, lwd = 2, lty = 2)
-```
-
-**Geeky note:**
-
-For now, there is no simple solution to compute pairwise $F_{ST}$ in R, but here is a solution using a home made function we prepared for you:
-
-```{r run pairwise Fst}
-pairwise_F(myData, confint = FALSE) ## without Confidence Interval
-```
-
-Let's do the same thing while estimating the amount of uncertainty:
-
-```{r run pairwise Fst with uncertainty}
-pairwise_Fst <- pairwise_F(myData, confint = TRUE) ## with CI
-lapply(pairwise_Fst, round, digit = 2) ## output after rounding with 2 digits
+```{r Fst per pair}
+pairFst <- pairwise.WCfst(genind2hierfstat(myData)) # does not work directly on genind input :-(
+pairFst
 ```
 
 We can plot this output:
 
 ```{r run pairwise Fst with uncertainty plot}
-levelplot(pairwise_Fst$mean, col.regions = rev(grey.colors(30)))
+levelplot(pairFst, col.regions = rev(grey.colors(30)))
 ```
+
+As for the $F_{IS}$, these pairwise $F_{ST}$ values correspond to the mean of $F_{ST}$ values over all loci.
+
+As for the $F_{IS}$, we can compute the 95$\%$ confidence interval of the mean $F_{ST}$ value:
+
+```{r bootstrapping Fst}
+boot.ppfst(genind2hierfstat(myData), nboot = 999)
+```
+
 
 ------------------------------------------------------------------------
 
 ## Private alleles
 
-It is worth checking if your populations have alleles that cannot be found in other populations. These are called "private alleles."
+It is worth checking if your populations have alleles that cannot be found in other populations.
+These are called "private alleles."
 
 We can use the `private_alleles()` function of `poppr` to get information about which alleles can only be found in a population.
 
@@ -1029,11 +1071,12 @@ private_alleles(myData)
 We can summarise the information for each population:
 
 ```{r private alleles per pop}
-private_alleles_per_pop <- apply(private_alleles(myData), 1, sum)
+private_alleles_per_pop <- rowSums(private_alleles(myData))
 private_alleles_per_pop
 ```
 
-Private alleles will impact measures of differentiation between populations. This is especially true, if their frequency is high (i.e., if they are common).
+Private alleles will impact measures of differentiation between populations.
+This is especially true, if their frequency is high (i.e., if they are common).
 
 Note that the number of private alleles may be influence by many factors, including sample size.
 
@@ -1071,13 +1114,15 @@ One benefit of displaying information in this manner is that we can see if there
 
 ## Proportion of shared alleles {.tabset .tabset-pills}
 
-A simple measure of genetic distance is the **proportion of shared alleles**. This measure does not make assumptions about mutation, genetic drift, etc.
+A simple measure of genetic distance is the **proportion of shared alleles**.
+This measure does not make assumptions about mutation, genetic drift, etc.
 
 It is, essentially, a measure of "how similar are two genotypes", with a value ranging from 1 (= identical) to 0 (= no shared alleles).
 
 `adegenet` has a function to calculate this: `propShared()`.
 
-The output of this function is a matrix with dimensions: no.of.samples x no.of.samples. This is a bit too much to show on the screen if we consider the whole dataset of 133 samples!
+The output of this function is a matrix with dimensions: no.of.samples x no.of.samples.
+This is a bit too much to show on the screen if we consider the whole dataset of 133 samples!
 
 Let us get the proportion of shared alleles among samples in Pop1 and display the information for the first 5 individuals:
 
@@ -1098,7 +1143,8 @@ mynj
 
 We have reconstructed a NJ tree based on the distance matrix. But we did not plot it!
 
-For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `nj()` was coded so that we can use `plot()`). We have several options for the type of tree to be plotted using `type =`, where we will set *unrooted*. Using `cex =` we can change the font-size of the sample names.
+For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `nj()` was coded so that we can use `plot()`).
+We have several options for the type of tree to be plotted using `type =`, where we will set *unrooted*. Using `cex =` we can change the font-size of the sample names.
 
 ```{r plot unrooted}
 plot(mynj, type = "unrooted", cex = 0.8)
@@ -1106,7 +1152,8 @@ plot(mynj, type = "unrooted", cex = 0.8)
 
 ## Other distance measures
 
-`adegenet` and `poppr` offer us the ability to generate other distance measures. Most of the ones offered in `poppr` work for individuals (rather than populations).
+`adegenet` and `poppr` offer us the ability to generate other distance measures.
+Most of the ones offered in `poppr` work for individuals (rather than populations).
 
 **Note:** several of these distance measures make strong assumptions about the biological nature of our genetic samples.
 
@@ -1128,13 +1175,6 @@ cophyloplot(mynj, mynj_prevosti,
 
 ***Are you happy with that?***
 
-```{r, fig.width=10}
-mynj_prevosti2 <- nj(prevosti.dist(myData[pop = 1, loc = 1:7])) 
-mynj_prevosti3 <- nj(prevosti.dist(myData[pop = 1, loc = 8:14]))
-cophyloplot(mynj_prevosti2, mynj_prevosti3,
-            assoc =  cbind(sort(mynj_prevosti2$tip.label), sort(mynj_prevosti3$tip.label)), cex = 0.8)
-```
-
 Now that we know how to make a NJ tree for a small dataset, we can do it for all samples in `myData`.
 
 ```{r plot prevosti big,  fig.width=10}
@@ -1142,7 +1182,8 @@ bignj <- nj(prevosti.dist(myData))
 plot(bignj, type = "unrooted", cex = 0.8)
 ```
 
-**Geeky note:** we can improve this plot by plotting colours and changing the type of tree. Here a possibility would be a "fan" plot:
+**Geeky note:** we can improve this plot by plotting colours and changing the type of tree.
+Here a possibility would be a "fan" plot:
 
 ```{r plot nj better 1, fig.height = 9, fig.width = 9}
 plot(bignj, type = "fan", show.tip.label = FALSE, x.lim = c(-0.7, 0.7), no.margin = TRUE)
@@ -1170,7 +1211,16 @@ legend("topleft", fill = rainbow(nPop(myData)),
 
 ## PCA (Principal Component Analysis)
 
-An alternative to neighbour joining is to reduce the dimensionality of the problem so that it can be plotted in 2 dimensions instead of one dimension per locus. Many options exist but the most common one is the so-called Principal Component Analysis, or PCA for short.
+An alternative to neighbour joining is to reduce the dimensionality of the problem so that it can be plotted in 2 dimensions instead of one dimension per locus.
+Many options exist to do that, but the most common one is the so-called Principal Component Analysis, or PCA for short.
+
+To draw the PCA very quickly, you can use `hierfstat`:
+
+```{r pca hierf}
+plot(indpca(myData))
+```
+
+For doing a little more, you are going to use the combination of the packages `ade4` and `adegenet` instead.
 
 This is how you run a PCA:
 
@@ -1225,45 +1275,117 @@ s.label(mypca$li, add.plot = TRUE, boxes = FALSE, clabel = 0.5)
 add.scatter.eig(mypca$eig[1:10], xax = 1, yax = 2, ratio = 0.15)
 ```
 
-Here is how each allele contribute to the axes:
+Here is how each allele contribute to the axes while displaying only the names of the private alleles for population 6:
 ```{r contribution to dimension}
-s.arrow(mypca$co[, 1:2], boxes = FALSE, cpoint = 0.4)
-```
-
-Let's look at the contribution from private alleles:
-```{r contribution to dimension private alleles}
-private_alleles_pop6 <- colnames(private_alleles(myData))[private_alleles(myData)["Pop6",] != 0]
-s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, cpoint = 0.4)
+s.arrow(mypca$co[, 1:2], boxes = FALSE, cpoint = 0, clabel = 0)
+private_alleles_pop6 <- colnames(private_alleles(myData))[private_alleles(myData)["Pop6", ] != 0]
+s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, clabel = 0.8, add.plot = TRUE)
 ```
 
 ------------------------------------------------------------------------
 
 ## DAPC (Discriminant Analysis of Principal Components)
 
-The PCA does not force the group to be different, it just shows the overall structure. In contrast, the DAPC is a method that allows to explore whether some combinations of alleles would allows the characterisation of distinct groups.
+The PCA does not force the group to be different, it just shows the overall structure.
+In contrast, the DAPC is a method (also implemented in `adegenet`) that allows to explore whether some combinations of alleles would allow the characterisation of distinct groups.
 
-Here is an example:
+This is particularly useful to perform assignements of samples from unknonw origins to populations!
+
+Unfortunatelly, certain steps cannot work with missing data.
+Because we want to perform all steps on the same data, we thus start removing missing values from the data.
+The function `missingno()` from `poppr` does exactly that.
+Here we delete genotypes with missing data (but you have other options):
+
+```{r trimming missing data}
+myData_noNA <- missingno(myData, type = "geno", cutoff = 0) # xvalDapc cannot handle missing values so we remove them
+```
+
+We can now start by identifying the genetic groups that approximate the data the best:
+
+```{r clusters}
+grp <- find.clusters(myData_noNA, n.pca = Inf, n.clust = 4) ## best not to define n.clust and choose interactivelly, keep n.pca = Inf here
+```
+
+Here only 4 groups should be defined and unlike when using `find.cluster()` we do need here to reduce `n.pca` not to overfit:
+
+We can now run the DAPC:
 
 ```{r dapc}
-myclusters <- find.clusters(myData, n.clust = 2, n.pca = Inf) ## better not fixing n.clust and selecting it interactivelly!!!
-dapc1 <- dapc(myData, pop = myclusters$grp, n.pca = Inf, n.da = Inf)
+dapc1 <- dapc(myData_noNA, pop = grp$grp, n.pca = 10, n.da = Inf) ## for choice of n.pca see below (it is very important!) 
 scatter(dapc1)
 ```
 
-So yes, it seems that it is possible to create groups... but it is not immediately clear what these groups correspond to in this dataset.
+Note that for a relativelly small number of cluster like here, `n.da` does not have to be anything else than `Inf`.
 
-So let's display the original populations on top of the plot:
-
-```{r dapc plot comparing outcome to pop}
-s.class(dapc1$ind.coord, fac = pop(myData),
-        col = rainbow(nPop(myData)), grid = FALSE, xax = 1, yax = 2, cpoint = 1)
-```
-
-Another type of visual representation is to mimic that one produced by the famous program **Structure**:
+An alternative visual representation of the same thing, which superficially mimics the one produced by the famous program **Structure**, is obtained with `compoplot()`:
 
 ```{r dapc plot comparing outcome to pop 2}
 compoplot(dapc1, show.lab = TRUE, legend = FALSE, cex.names = 0.4,
-          lab = paste(pop(myData), rownames(dapc1$tab)))
+          lab = paste(pop(myData_noNA), rownames(dapc1$tab)))
 ```
+
+Let's now assign the following individual:
+
+```{r new id}
+newID <- data.frame(INRA63.183 = 2, INRA63.181 = 0, INRA63.177 = 0, 
+                    INRA63.175 = 0, INRA63.179 = 0, INRA63.185 = 0, INRA63.171 = 1, 
+                    INRA5.137 = 0, INRA5.141 = 2, INRA5.143 = 0, INRA5.139 = 0, 
+                    INRA5.149 = 0, ETH225.147 = 0, ETH225.157 = 1, ETH225.139 = 0, 
+                    ETH225.141 = 0, ETH225.153 = 0, ETH225.149 = 0, ETH225.155 = 0, 
+                    ETH225.143 = 0, ETH225.159 = 1, ETH225.151 = 0, ETH225.137 = 0, 
+                    ETH225.145 = 0, HE5.149 = 0, HE5.151 = 0, HE5.163 = 0, 
+                    HE5.165 = 0, HE5.167 = 2, HE5.155 = 0, HE5.157 = 0, 
+                    HE5.153 = 0, HE5.161 = 0, HE5.159 = 0, HE1.103 = 1, 
+                    HE1.109 = 0, HE1.105 = 1, HE1.107 = 0, HE1.101 = 0, 
+                    HE1.117 = 0, HE1.113 = 0, HE1.111 = 0, INRA35.102 = 0, 
+                    INRA35.104 = 2, INRA35.120 = 2, INRA35.110 = 0, INRA35.108 = 0, 
+                    INRA35.114 = 0, INRA35.106 = 0, ETH152.191 = 0, ETH152.195 = 1, 
+                    ETH152.197 = 1, ETH152.193 = 0, ETH152.201 = 0, ETH152.199 = 0, 
+                    ETH152.205 = 0, INRA23.213 = 0, INRA23.215 = 0, INRA23.197 = 0, 
+                    INRA23.199 = 1, INRA23.209 = 2, INRA23.205 = 0, INRA23.211 = 1, 
+                    INRA23.203 = 0, INRA23.207 = 0, INRA23.217 = 0, INRA23.201 = 0, 
+                    INRA23.193 = 0, ETH10.209 = 0, ETH10.211 = 0, ETH10.207 = 1, 
+                    ETH10.217 = 0, ETH10.219 = 1, ETH10.221 = 0, ETH10.215 = 0, 
+                    ETH10.223 = 0, ETH10.213 = 2, HE9.153 = 0, HE9.159 = 0, 
+                    HE9.165 = 1, HE9.155 = 0, HE9.161 = 1, HE9.163 = 0, 
+                    HE9.167 = 0, HE9.157 = 0, HE9.149 = 0, HE9.169 = 0, 
+                    HE9.151 = 0, CSSM66.181 = 0, CSSM66.189 = 1, CSSM66.185 = 1, 
+                    CSSM66.193 = 0, CSSM66.197 = 0, CSSM66.183 = 0, CSSM66.199 = 0, 
+                    CSSM66.187 = 0, CSSM66.179 = 0, CSSM66.195 = 0, CSSM66.171 = 0, 
+                    CSSM66.191 = 0, INRA32.162 = 1, INRA32.178 = 0, INRA32.180 = 0, 
+                    INRA32.184 = 0, INRA32.202 = 0, INRA32.182 = 1, INRA32.176 = 0, 
+                    INRA32.174 = 0, INRA32.164 = 0, INRA32.160 = 0, INRA32.204 = 0, 
+                    INRA32.168 = 0, ETH3.117 = 0, ETH3.125 = 0, ETH3.115 = 2, 
+                    ETH3.127 = 0, ETH3.103 = 0, ETH3.123 = 0, ETH3.129 = 0, 
+                    ETH3.131 = 0, ETH3.119 = 0, ETH3.109 = 0, ETH3.113 = 0, 
+                    BM2113.140 = 0, BM2113.142 = 0, BM2113.122 = 0, BM2113.134 = 0, 
+                    BM2113.136 = 1, BM2113.146 = 1, BM2113.138 = 0, BM2113.130 = 0, 
+                    BM2113.124 = 0, BM2113.150 = 0, BM2113.128 = 0, BM2113.132 = 0, 
+                    BM2113.126 = 0, BM2113.144 = 0)
+predict(dapc1, newdata = newID)
+```
+Thus individual is assigned to group 2 (although that it belongs to group 1 is not impossible).
+
+But what does it mean?
+To figure this out, we need to go back to the clustering we starting with and compare it to our populations:
+
+```{r clusters vs pop}
+table.value(table(pop(myData_noNA), grp$grp), col.lab = paste0("new_group", 1:4))
+```
+
+As you can see, the group 2 correspond to both pop1 and pop2, so our new individual may come from either.
+
+Note that to obtain the best prediction accuracy, it is important to select the right number of PCA axis when running the DAPC.
+you can estimate this by cross validation using the function `xvalDapc()`:
+
+```{r cross validation pca}
+cross_validation <- xvalDapc(myData_noNA, grp = grp$grp, n.da = Inf, n.rep = 30) # increase n.rep for real usage!
+cross_validation$`Number of PCs Achieving Highest Mean Success`
+```
+
+As you can see 10 PCA axis leads to best results, which is why we chose that above.
+
+For more details, see this [tutorial](https://github.com/thibautjombart/adegenet/blob/master/tutorials/tutorial-dapc.pdf).
+
 
 # THE END
