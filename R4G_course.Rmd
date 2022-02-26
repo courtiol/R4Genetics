@@ -142,7 +142,7 @@ Here is the basic structure:
 
 1.  the first line is a "comment line" - you can keep notes on your project here. E.g. "24 animals, 8 loci"
 
-2.  the second line contains the names of the loci (locus-1, etc).
+2.  the second line contains the names of the loci (locus-1, ...).
 
 3.  the third line has a "pop flag" that indicates the next samples belong to the same population.
 
@@ -367,13 +367,16 @@ As a general rule of thumb, we try to keep missing data below 5% in order to min
 ***How do you think we can achieve this?***
 
 Using `genotype_curve()` we can check how many loci we need in order to discriminate our genotypes.
-This `poppr` function randomly samples loci without replacement and counts the number of multilocus genotypes observed.
+In other words, we can use it to answer the question: how many loci do we need to distinguish all our samples?  
+From 1 to $n-1$, where $n$ is the total number of loci, this `poppr` function randomly samples columns (= loci) 100 times without replacement, and counts the number of unique genotypes observed.
 
 ```{r genotype curve}
 gencurv <- genotype_curve(myData)
 ```
 
 ***How many loci do we need in order to discriminate our genotypes?***
+
+***Why is it run to $n-1$, and not to $n$?***
 
 **Geeky note:** you can get the exact numbers of distinct genotypes given each number of loci considered:
 
@@ -440,10 +443,16 @@ Depending on how we obtain our genetic samples, we may not know if we have genot
 
 For example, if we have been genotyping samples collected in a non-invasive way (e.g. hair or faeces), then we don't really have a way of knowing if we have obtained more than one sample per individual.
 
+We know how many loci we need to distinguish individuals by using `genotype_curve()` above, so now we can check if we have genotyped an individual more than once. 
+
 There is an `R` package called `alleleMatch` that can investigate this in detail.
-However, it is not activelly maintained.
+However, it is not actively maintained.
 Thankfully, `poppr` has some basic functionality to examine this.
 Using `mlg()` we can check for the number of unique multilocus genotypes in `myData`.
+
+Note that all software that deals with genetic data has a way of labelling missing data. 
+For example, many R packages use “NA”. 
+As missing data can contribute to observed differences between genotypes, but such differences only reflect absence of data and not necessarily a biological difference, the `mlg()` function is coded in a way to ignore differences between genotypes resulting from missing data.
 
 ```{r mlg}
 mlg(myData)
@@ -526,6 +535,18 @@ nLoc(myData) * nInd(myData)
 
 Another important consideration is to check if our loci are variable and informative.
 Otherwise it is useless to keep them.
+
+What do we mean with uninformative? 
+The simplest example is if all individuals are the same at a given locus. 
+This might be due to experimental design, if we designed our microsatellite primers using genetic data from another species (e.g. we use genetic data from the cat to design primers to genotype lions). 
+But there are also processes working at the population level that could lead to this. 
+
+***Can you think of an example?***
+
+There is a common way to examine if a locus is informative. 
+For this, we examine the so-called ***minor allele frequency*** (MAF): the frequency of the *second most common allele* at a locus. 
+If this is higher than a threshold (often 1% = frequency of 0.01), a locus is considered informative. 
+
 The function `informloci()` can be used to detect uninformative loci and remove them.
 
 ```{r informloci}
@@ -697,7 +718,7 @@ To apply the HWE test with `hw.test()` to every item in the list (ie every popul
 lapply(seppop(myData), hw.test)
 ```
 
-Be careful during your interpretation: the population sizes differ and so does the statical power!
+Be careful during your interpretation: the population sizes differ and so does the statistical power!
 
 ```{r pop sizes}
 unlist(lapply(seppop(myData), nInd))
@@ -735,7 +756,7 @@ Here we can see the distribution of expected association between alleles at diff
 It appears we have a significant association between loci, at least when merging observations across all populations.
 
 What if we look at the same test per population?
-To answer this question, we use `seppop()` and `lapply()` as before, but now we include the function that we want to run on eahc pop (here, `ia()`) and the arguments for such a function.
+To answer this question, we use `seppop()` and `lapply()` as before, but now we include the function that we want to run on each pop (here, `ia()`) and the arguments for such a function.
 Here, the argument `sample` defines the number of permutations used to draw the distribution of the association index under the null hypothesis; we want a large number, e.g., 999:
 
 ```{r index of association per pop}
@@ -1003,9 +1024,14 @@ However this is not exactly what we need since the default display shows metrics
 ------------------------------------------------------------------------
 
 For the $F_{IS}$ we want one value per population.
-We can derive that information from `basic.stats()` with a little trick:
+We can derive that information from `basic.stats()` with a little trick. 
+We can get the summary statistics per population, if we append `basic.stats()` with the appropriate statistic, e.g. using `$Fis`
 
 ```{r basic stats Fis}
+basic.stats(myData)$Fis # Fis for every locus (rows) by population (columns)
+```
+
+```{r basic stats Fis2}
 Fis <- colMeans(basic.stats(myData)$Fis) # close but not equal to (Hs(myData) - Ho(myData))/Hs(myData)
 Fis
 ```
@@ -1078,7 +1104,7 @@ private_alleles_per_pop
 Private alleles will impact measures of differentiation between populations.
 This is especially true, if their frequency is high (i.e., if they are common).
 
-Note that the number of private alleles may be influence by many factors, including sample size.
+Note that the number of private alleles may be influenced by many factors, including sample size.
 
 ***What would you expect the relationship to be?***
 
@@ -1115,7 +1141,7 @@ One benefit of displaying information in this manner is that we can see if there
 ## Proportion of shared alleles {.tabset .tabset-pills}
 
 A simple measure of genetic distance is the **proportion of shared alleles**.
-This measure does not make assumptions about mutation, genetic drift, etc.
+This measure does not make assumptions about mutation, genetic drift, ...
 
 It is, essentially, a measure of "how similar are two genotypes", with a value ranging from 1 (= identical) to 0 (= no shared alleles).
 
@@ -1212,7 +1238,7 @@ legend("topleft", fill = rainbow(nPop(myData)),
 ## PCA (Principal Component Analysis)
 
 An alternative to neighbour joining is to reduce the dimensionality of the problem so that it can be plotted in 2 dimensions instead of one dimension per locus.
-Many options exist to do that, but the most common one is the so-called Principal Component Analysis, or PCA for short.
+Many options exist to do that, but the most common one is the so-called ***Principal Component Analysis***, or PCA for short.
 
 To draw the PCA very quickly, you can use `hierfstat`:
 
@@ -1289,9 +1315,9 @@ s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, clabel = 0.8, add.pl
 The PCA does not force the group to be different, it just shows the overall structure.
 In contrast, the DAPC is a method (also implemented in `adegenet`) that allows to explore whether some combinations of alleles would allow the characterisation of distinct groups.
 
-This is particularly useful to perform assignements of samples from unknonw origins to populations!
+This is particularly useful to perform assignments of samples from unknown origins to populations!
 
-Unfortunatelly, certain steps cannot work with missing data.
+Unfortunately, certain steps cannot work with missing data.
 Because we want to perform all steps on the same data, we thus start removing missing values from the data.
 The function `missingno()` from `poppr` does exactly that.
 Here we delete genotypes with missing data (but you have other options):
@@ -1315,7 +1341,7 @@ dapc1 <- dapc(myData_noNA, pop = grp$grp, n.pca = 10, n.da = Inf) ## for choice 
 scatter(dapc1)
 ```
 
-Note that for a relativelly small number of cluster like here, `n.da` does not have to be anything else than `Inf`.
+Note that for a relatively small number of cluster like here, `n.da` does not have to be anything else than `Inf`.
 
 An alternative visual representation of the same thing, which superficially mimics the one produced by the famous program **Structure**, is obtained with `compoplot()`:
 
@@ -1367,7 +1393,7 @@ predict(dapc1, newdata = newID)
 Thus individual is assigned to group 2 (although that it belongs to group 1 is not impossible).
 
 But what does it mean?
-To figure this out, we need to go back to the clustering we starting with and compare it to our populations:
+To figure this out, we need to go back to the clustering we started with and compare it to our populations:
 
 ```{r clusters vs pop}
 table.value(table(pop(myData_noNA), grp$grp), col.lab = paste0("new_group", 1:4))
