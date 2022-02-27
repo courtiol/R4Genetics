@@ -368,6 +368,7 @@ As a general rule of thumb, we try to keep missing data below 5% in order to min
 
 Using `genotype_curve()` we can check how many loci we need in order to discriminate our genotypes.
 In other words, we can use it to answer the question: how many loci do we need to distinguish all our samples?  
+
 From 1 to $n-1$, where $n$ is the total number of loci, this `poppr` function randomly samples columns (= loci) 100 times without replacement, and counts the number of unique genotypes observed.
 
 ```{r genotype curve}
@@ -683,7 +684,7 @@ It is thus important to realise if your data reject the HWE assumptions!
 
 With `hw.test()` from `pegas` we can test for HWE across our populations:
 
-```{r testing HWE}
+```{r testing HWE, results='hold'}
 hw.test(myData, B = 0) ## for Monte Carlo test instead of asymptotic,
                        ## use large value of B (>= 1000)
 ```
@@ -770,7 +771,7 @@ In some populations we observe significant LD.
 If we want to know which two loci are in LD, we can use the `pair.ia()` function.
 Let's consider, for example, what happens for Pop6:
 
-```{r pair ia}
+```{r pair ia, results='hide'}
 pair.ia(seppop(myData)[["Pop6"]])
 #pair.ia(myData[pop = 6])   # same thing
 ```
@@ -780,13 +781,13 @@ We can see that LD is not the same for all pairs of loci.
 Let us change the plot so that it is easier for colour-blind people to see (e.g. for Dan!).
 For this we add some additional arguments for colour: `low = "black"` and `high = "green"`.
 
-```{r plot pair ia}
+```{r plot pair ia, results='hide'}
 pair.ia(myData[pop = "Pop6"], low = "black", high = "green")
 ```
 
 We now display the linkage disequilibrium for each population:
 
-```{r plot pair ia all pop}
+```{r plot pair ia all pop, results='hide'}
 lapply(seppop(myData), pair.ia, low = "black", high = "green")
 ```
 
@@ -1091,13 +1092,28 @@ We can use the `private_alleles()` function of `poppr` to get information about 
 Alleles are labelled as `locus.allele`.
 
 ```{r private alleles}
-private_alleles(myData)
+private <- private_alleles(myData, report = "data.frame") ## report influences the output format
+private
 ```
 
-We can summarise the information for each population:
+Let's rework the output to actually reveals what the private alleles are for each population:
+```{r private alleles2, message=FALSE}
+private_only <- private[private$count > 0, ]
+private_only[order(private_only$population), ]
+```
+Or same using the tidyverse package `dplyr`:
+```{r private alleles3, message=FALSE, error=TRUE}
+library(dplyr)
+private |>
+  filter(count > 0) |>
+  arrange(population) |>
+  rename(nb_indiv = count)
+```
+
+We can count the number of private alleles in each population:
 
 ```{r private alleles per pop}
-private_alleles_per_pop <- rowSums(private_alleles(myData))
+private_alleles_per_pop <- rowSums(private_alleles(myData) > 0)
 private_alleles_per_pop
 ```
 
@@ -1341,7 +1357,7 @@ dapc1 <- dapc(myData_noNA, pop = grp$grp, n.pca = 10, n.da = Inf) ## for choice 
 scatter(dapc1)
 ```
 
-Note that for a relatively small number of cluster like here, `n.da` does not have to be anything else than `Inf`.
+Note that for a relatively small number of clusters like here, `n.da` does not have to be anything else than `Inf`.
 
 An alternative visual representation of the same thing, which superficially mimics the one produced by the famous program **Structure**, is obtained with `compoplot()`:
 
@@ -1390,16 +1406,16 @@ newID <- data.frame(INRA63.183 = 2, INRA63.181 = 0, INRA63.177 = 0,
                     BM2113.126 = 0, BM2113.144 = 0)
 predict(dapc1, newdata = newID)
 ```
-Thus individual is assigned to group 2 (although that it belongs to group 1 is not impossible).
+So we can see that this individual is assigned to one of the four clusters (although it may not be impossible it belongs to another).
 
 But what does it mean?
 To figure this out, we need to go back to the clustering we started with and compare it to our populations:
 
 ```{r clusters vs pop}
-table.value(table(pop(myData_noNA), grp$grp), col.lab = paste0("new_group", 1:4))
+table.value(table(pop(myData_noNA), grp$grp), col.lab = paste0("cluster_", 1:4))
 ```
 
-As you can see, the group 2 correspond to both pop1 and pop2, so our new individual may come from either.
+As you can see, this cluster corresponds to both pop1 and pop2, so our new individual may come from either of the two populations.
 
 Note that to obtain the best prediction accuracy, it is important to select the right number of PCA axis when running the DAPC.
 you can estimate this by cross validation using the function `xvalDapc()`:
