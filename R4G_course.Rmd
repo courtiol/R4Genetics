@@ -194,7 +194,7 @@ Unsurprisingly, there will be an error if you type the path to the file incorrec
 One way to limit such issues is to list all genepop files in the folder containing the data (to make sure that the file is where you are trying to read it):
 
 ```{r listing files}
-dir(path = "data/", pattern = "*.gen")
+dir(path = "data/", pattern = ".gen")
 ```
 
 ------------------------------------------------------------------------
