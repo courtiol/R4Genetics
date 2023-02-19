@@ -107,15 +107,18 @@ pairwise_similarity <- function(x, pop = NULL, as_vector = FALSE) {
 #res <- cbind(test, ratio2 = propShared(myData[pop = 1])[cbind(test[, 1], test[, 2])])
 #plot(res$ratio, res$ratio2)
 
-private_alleles_freq <- function(x, ploidy.level = 2) {
-  all <- lapply(seppop(x), \(x) colSums(adegenet::makefreq(x, quiet = TRUE)*ploidy.level, na.rm = TRUE))
-  private <- names(colSums(poppr::private_alleles(myData)))
-  freqlist <- lapply(all, \(x) x[names(x) %in% private & x > 0] / sum(x))
+private_alleles_freq <- function(x) {
+  all <- lapply(seppop(x), \(x) adegenet::makefreq(x, quiet = TRUE))
+  private <- colSums(poppr::private_alleles(myData))
+  sumlist <- lapply(all, \(x) colSums(x[, names(private)], na.rm = TRUE))
+  meanlist <- lapply(all, \(x) colMeans(x[, names(private)], na.rm = TRUE))
+  freqlist <- Map(\(sum, mean) mean[sum != 0], sumlist, meanlist)
   freqlistdf <- lapply(freqlist, \(freq) data.frame(freq))
-  res <- do.call("rbind", Map(\(x, pop) data.frame(Pop = pop,
-                                                   Private_allele = rownames(x),
-                                                   Freq = x$freq),
+  res <- do.call("rbind", Map(\(x, pop) data.frame(Private_allele = rownames(x),
+                                                   Freq = x$freq,
+                                                   Pop = pop),
                               freqlistdf, names(freqlistdf)))
+  res <- res[order(1 - res$Freq), ]
   rownames(res) <- NULL
   res
 }

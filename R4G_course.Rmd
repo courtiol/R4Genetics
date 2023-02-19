@@ -1335,6 +1335,8 @@ private_alleles_pop6 <- colnames(private_alleles(myData))[private_alleles(myData
 s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, clabel = 0.8, add.plot = TRUE)
 ```
 
+***Why is the allele BM2113.132 so influential?***
+
 ------------------------------------------------------------------------
 
 ## DAPC (Discriminant Analysis of Principal Components)
