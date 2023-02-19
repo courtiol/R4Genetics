@@ -941,42 +941,41 @@ levelplot(heteroz_matrix, col.regions = viridis(100),
 
 ## F-statistics
 
-An effect of population subdivision on genetic variation is the reduction in observed heterozygotes.
-As we have seen previously (Wahlund effect).
+The effect of population subdivision upon genetic variation is to reduce the frequency of observed heterozygotes (as we have seen above; see Wahlund effect).
 
-The extent of reduction in observed heterozygotes can be used to quantify the level of differentiation between sub-populations.
+The extent of the departure from heterozygoty expected under HWE can thus be used to quantify the level of differentiation between pools of genes (sub-populations, individuals...).
 
 This quantification is formalised in a series of hierarchical *F-statistics*.
 
---\> We are using a measure of departure from HWE to quantify the extent of differentiation between populations.
-
 ------------------------------------------------------------------------
 
-F-statistics also provide a way to quantify the level of heterozygosity at the individual level, and if/how this departs from expectations of HWE in the population.
-
-------------------------------------------------------------------------
-
-How are these linked?
-
-![F-statistics, from <https://en.wikipedia.org/wiki/F-statistics>](images/F-statistics.png)
+There are 3 main different F-statistics which are used to compare gene pools defined at 3 different levels:
 
 -   I = individual
 -   S = sub-population
 -   T = total-population
 
+![(image from <https://en.wikipedia.org/wiki/F-statistics>)](images/F-statistics.png)
+
 We will focus on the two most common F-statistics: $F_{IS}$ and $F_{ST}$.
 
--   $F_{IS}$ is known as the **inbreeding coefficient**.
+-   $F_{IS}$
 
-    -   this essentially measures departures from random-mating.
-    -   how does heterozygosity in individuals compare to that in the sub-population?
-    -   $F_{IS} = (H_S - H_I)/H_S$
+    -   this summary statistics measures departures from random-mating:
+        - a positive $F_{IS}$ indicates that individuals in a population are more related than expected under a model of random mating
+        - a null $F_{IS}$ is compatible with the assumption of random mating
+        - a negative $F_{IS}$ indicates that individuals in a population are less related than expected under a model of random mating
+    -   $F_{IS}$ measures the **inbreeding coefficient** of an average individual relative to its local subpopulation
+    -   $F_{IS} = (H_S - H_I)/H_S$, where $H_S$ is the average frequency of heterozygotes expected in sub-populations (computed $2pq$ for each sub-pop and then averaged) and where $H_I$ is the observed frequency of heterozygotes within sub-populations.
 
--   $F_{ST}$ is known as the **fixation index**.
+-   $F_{ST}$
 
-    -   measures the extent of genetic differentiation among sub-populations.
-    -   how is heterozygosity in the sub-population reduced relative to the total population.
-    -   $F_{ST} = (H_T - H_S)/H_T$
+    -   this summary statistics measures the extent of genetic differentiation between sub-populations:
+        - a positive $F_{ST}$ indicates that sub-populations differ genetically
+        - a null $F_{ST}$ indicates that you cannot reject the possibility that all sub-populations are not real from the genetic point of view: there is a single gene pool
+        - a negative $F_{ST}$ should not occur (unless the sample size is very small)
+    - $F_{ST}$ measures the **fixation index**, which compares the expected heterozygoty at the population and the sub-population level
+    -   $F_{ST} = (H_T - H_S)/H_T$, where $H_T$ is computed similarly to $H_S$ but considering that all individuals are located in a single total population.
 
 Let's calculate $F_{ST}$ for our previous example.
 
@@ -1051,7 +1050,6 @@ We can combine and format the information in a single table:
 ```{r Fis all}
 Fis_table <- data.frame(Fis = Fis, Fis_CI$fis.ci)
 colnames(Fis_table)[2:3] <- c("lwr", "upr")
-Fis_table$lwr[Fis_table$lwr < 0] <- 0 # lwr than 0 does not make sense (bootstrap artifact)
 Fis_table
 ```
 
