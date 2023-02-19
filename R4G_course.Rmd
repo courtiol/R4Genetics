@@ -1153,33 +1153,31 @@ private_alleles_freq(myData)
 
 # Trees & principal component analysis
 
-Individual-based analyses frequently do not make assumptions about HWE, because they look at the differences between individuals.
+Individual-based analyses frequently do not make assumptions about HWE, because they look at the differences between individuals rather than at differences between sub-populations.
 
-But consider how this kind of information must be presented.
+But comparing every individual to every other individuals would lead to $\dfrac{n(n-1)}{2}$ comparisons (i.e. $n^2$ minus the number of equivalent comparisons, minus the number of comparisons of individuals to themselves), which quickly becomes a huge number as the sample size ($n$) grows.
 
-`individual x individual`
-
-It is not surprising that we have come up with ways to visualize this kind of information.
+In this context, it is not surprising that people have come up with ways to *visualize* beyond the mere tabulation of similarities between individuals.
 
 Two very common ways are **trees** (or networks) and **PCA**.
 
-One benefit of displaying information in this manner is that we can see if there are groupings of individuals that are more similar to each other than they are to other individuals.
+One benefit of such graphical representations is that we can see the extent to which individuals cluster into well defined genetic groups.
 
 ------------------------------------------------------------------------
 
 ## Proportion of shared alleles {.tabset .tabset-pills}
 
-A simple measure of genetic distance is the **proportion of shared alleles**.
-This measure does not make assumptions about mutation, genetic drift, ...
+A simple measure of genetic distance that can be used by visualisation methods is the **proportion of shared alleles**.
 
-It is, essentially, a measure of "how similar are two genotypes", with a value ranging from 1 (= identical) to 0 (= no shared alleles).
+This summary statistics does not make any assumptions about mutation, genetic drift, and any other biological process. It thus does not rely on the assumptions for the HWE to be met.
 
-`adegenet` has a function to calculate this: `propShared()`.
+The metric is, essentially, a measure of "how similar are two genotypes", with a value ranging from 1 (= identical) to 0 (= no shared alleles).
 
-The output of this function is a matrix with dimensions: no.of.samples x no.of.samples.
-This is a bit too much to show on the screen if we consider the whole dataset of 133 samples!
+The `R` package `adegenet` has a function to calculate this: `propShared()`.
 
-Let us get the proportion of shared alleles among samples in Pop1 and display the information for the first 5 individuals:
+The output of this function is a matrix with dimensions $n^2$, which is a bit too much to show on the screen if we consider the whole dataset.
+
+We then illustrate what this function produces by selecting the proportion of shared alleles among samples in Pop1 and display the information for the first 5 individuals:
 
 ```{r proportion of shared alleles}
 similarity_mat <- propShared(myData[pop = "Pop1"])
@@ -1188,7 +1186,7 @@ similarity_mat[1:5, 1:5]
 
 The function `nj()` of the `ape` package can create a **neighbour joining** (NJ) tree from a **distance matrix**.
 
-We can use the similarity matrix we just computed to obtain a distance matrix and run the neighbour joining:
+We can thus use the similarity matrix we just computed to obtain a distance matrix (distance matrix = 1 - similarity matrix) and run the neighbour joining:
 
 ```{r neighbour joining}
 distance_mat <- 1 - similarity_mat
@@ -1196,9 +1194,9 @@ mynj <- nj(distance_mat)
 mynj
 ```
 
-We have reconstructed a NJ tree based on the distance matrix. But we did not plot it!
+We have just reconstructed a NJ tree based on the distance matrix. But we did not yet plot it!
 
-For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `nj()` was coded so that we can use `plot()`).
+For this we need to simply use the `plot()` function, which can handle the output of `nj()` (or rather, `ape` functions were coded so that we can use `plot()`).
 We have several options for the type of tree to be plotted using `type =`, where we will set *unrooted*. Using `cex =` we can change the font-size of the sample names.
 
 ```{r plot unrooted}
@@ -1207,12 +1205,12 @@ plot(mynj, type = "unrooted", cex = 0.8)
 
 ## Other distance measures
 
-`adegenet` and `poppr` offer us the ability to generate other distance measures.
-Most of the ones offered in `poppr` work for individuals (rather than populations).
+The `R` packages `adegenet` and `poppr` provide us with the ability to generate other distance measures.
+Most of the ones offered in `poppr` work for individuals (rather than populations), which is suitable for what we are doing here.
 
 **Note:** several of these distance measures make strong assumptions about the biological nature of our genetic samples.
 
-Let's try another measure that makes no assumptions: *Prevosti's distance*, which we can use with `prevosti.dist()`
+Let's try another measure that does not make such assumptions: the *Prevosti's distance*, which we can use with `prevosti.dist()`. We again restrict our analysis to `Pop1` to begin with:
 
 ```{r plot prevosti small}
 mynj_prevosti <- nj(prevosti.dist(seppop(myData)[["Pop1"]]))
@@ -1238,7 +1236,7 @@ plot(bignj, type = "unrooted", cex = 0.8)
 ```
 
 **Geeky note:** we can improve this plot by plotting colours and changing the type of tree.
-Here a possibility would be a "fan" plot:
+Here a possibility would be a *fan* plot:
 
 ```{r plot nj better 1, fig.height = 9, fig.width = 9}
 plot(bignj, type = "fan", show.tip.label = FALSE, x.lim = c(-0.7, 0.7), no.margin = TRUE)
@@ -1250,7 +1248,7 @@ legend("topleft", fill = rainbow(nPop(myData)),
        title = "Population")
 ```
 
-Or perhaps a "radial" plot:
+Or perhaps a *radial* plot:
 
 ```{r plot nj better 2, fig.height = 12, fig.width = 12}
 plot(bignj, type = "radial", show.tip.label = FALSE, x.lim = c(-0.7, 0.7), no.margin = TRUE)
@@ -1308,7 +1306,7 @@ barplot(mypca$eig,
         las = 2, ylab = "Inertia")
 ```
 
-or in cumulated percentage:
+or the same thing expressed as the cumulated percentage of variation accounted for the axes:
 
 ```{r pca explained 4}
 barplot(cumsum(100*mypca$eig/sum(mypca$eig)),
@@ -1342,7 +1340,7 @@ s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, clabel = 0.8, add.pl
 ## DAPC (Discriminant Analysis of Principal Components)
 
 The PCA does not force the group to be different, it just shows the overall structure.
-In contrast, the DAPC is a method (also implemented in `adegenet`) that allows to explore whether some combinations of alleles would allow the characterisation of distinct groups.
+In contrast, the DAPC is a method (also implemented in the `R` package `adegenet`) that allows to explore whether some combinations of alleles would allow the characterisation of distinct groups.
 
 This is particularly useful to perform assignments of samples from unknown origins to populations!
 
@@ -1361,7 +1359,9 @@ We can now start by identifying the genetic groups that approximate the data the
 grp <- find.clusters(myData_noNA, n.pca = Inf, n.clust = 4) ## best not to define n.clust and choose interactivelly, keep n.pca = Inf here
 ```
 
-Here only 4 groups should be defined and unlike when using `find.cluster()` we do need here to reduce `n.pca` not to overfit:
+Here we selected the number of clusters to be 4. In practice, you can select the most adequate number by not defining `n.clust` and running the function in your `R` console. The function will draw a plot showing how a statistics of goodness-of-fit (the BIC) varies according to this number. The lower the BIC, the better the fit.
+
+**Geeky note:** we chose to select 4 clusters rather than 3 despite the latter being the number of clusters associated with the smallest BIC. We did so because the fit did not deteriorate much under this condition, and more clusters means more genetic groups, so more potential for discrimination. In real use, do examine the impact of your choice upon the robustness of your results.
 
 We can now run the DAPC:
 
@@ -1370,7 +1370,19 @@ dapc1 <- dapc(myData_noNA, pop = grp$grp, n.pca = 10, n.da = Inf) ## for choice 
 scatter(dapc1)
 ```
 
-Note that for a relatively small number of clusters like here, `n.da` does not have to be anything else than `Inf`.
+Note that for a relatively small number of clusters like here, `n.da` does not have to be anything else than `Inf`. However, unlike when using `find.cluster()` we do need here to define `n.pca` so as not to overfit.
+
+The right number of PCA axes to be used can be estimated by cross validation, using the function `xvalDapc()`:
+
+```{r cross validation pca}
+cross_validation <- xvalDapc(myData_noNA, grp = grp$grp, n.da = Inf, n.rep = 30) # increase n.rep for real usage!
+cross_validation$`Number of PCs Achieving Highest Mean Success`
+```
+
+As you can see 10 PCA axis leads to best results, which is why we chose that above.
+
+
+------------------------------------------------------------------------
 
 An alternative visual representation of the same thing, which superficially mimics the one produced by the famous program **Structure**, is obtained with `compoplot()`:
 
@@ -1379,7 +1391,9 @@ compoplot(dapc1, show.lab = TRUE, legend = FALSE, cex.names = 0.4,
           lab = paste(pop(myData_noNA), rownames(dapc1$tab)))
 ```
 
-Let's now assign the following individual:
+------------------------------------------------------------------------
+
+Let's now assign the following individual using the DAPC:
 
 ```{r new id}
 newID <- data.frame(INRA63.183 = 2, INRA63.181 = 0, INRA63.177 = 0, 
@@ -1421,7 +1435,8 @@ predict(dapc1, newdata = newID)
 ```
 So we can see that this individual is assigned to one of the four clusters (although it may not be impossible it belongs to another).
 
-But what does it mean?
+***But what does this result mean?***
+
 To figure this out, we need to go back to the clustering we started with and compare it to our populations:
 
 ```{r clusters vs pop}
@@ -1430,17 +1445,7 @@ table.value(table(pop(myData_noNA), grp$grp), col.lab = paste0("cluster_", 1:4))
 
 As you can see, this cluster corresponds to both pop1 and pop2, so our new individual may come from either of the two populations.
 
-Note that to obtain the best prediction accuracy, it is important to select the right number of PCA axis when running the DAPC.
-you can estimate this by cross validation using the function `xvalDapc()`:
-
-```{r cross validation pca}
-cross_validation <- xvalDapc(myData_noNA, grp = grp$grp, n.da = Inf, n.rep = 30) # increase n.rep for real usage!
-cross_validation$`Number of PCs Achieving Highest Mean Success`
-```
-
-As you can see 10 PCA axis leads to best results, which is why we chose that above.
-
-For more details, see this [tutorial](https://github.com/thibautjombart/adegenet/blob/master/tutorials/tutorial-dapc.pdf).
+For more details on DAPC, see this [tutorial](https://github.com/thibautjombart/adegenet/blob/master/tutorials/tutorial-dapc.pdf).
 
 
 # THE END
