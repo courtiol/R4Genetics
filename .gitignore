@@ -5,3 +5,5 @@ knitr
 scripts/writeGenPop.R
 Icon.*
 Icon
+*.html
+*.R
