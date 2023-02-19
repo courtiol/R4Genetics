@@ -791,6 +791,8 @@ We now display the linkage disequilibrium for each population:
 lapply(seppop(myData), pair.ia, low = "black", high = "green")
 ```
 
+There does not seem to be a consistent pattern across loci, so excluding any particular locus would not improve the situation for this particular dataset.
+
 ------------------------------------------------------------------------
 
 # Descriptive statistics
