@@ -120,5 +120,6 @@ private_alleles_freq <- function(x, ploidy.level = 2) {
   res
 }
 
+# private_alleles_freq(myData)
 
 print("All functions succesfully loaded")
