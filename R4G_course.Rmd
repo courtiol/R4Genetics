@@ -1077,13 +1077,25 @@ As for the $F_{IS}$, we can compute the 95$\%$ confidence interval of the mean $
 boot.ppfst(genind2hierfstat(myData), nboot = 999)
 ```
 
+**Note:** we will see below better methods to represent visually differences between sub-populations.
 
 ------------------------------------------------------------------------
 
 ## Private alleles
 
-It is worth checking if your populations have alleles that cannot be found in other populations.
-These are called "private alleles."
+If your populations have alleles that cannot be found in other populations, these alleles are called **private alleles**.
+
+Identifying private alleles can be useful in various contexts.
+
+For example, it can be used to  identify from which sub-population an individual may come from, which is useful for forensic applications.
+
+It is also a summary statistics that can be used to describe genetic differences across sub-populations, similar (but different) to the $F_{ST}$.
+
+In fact, private alleles can bias measures of differentiation between sub-populations if the frequency of private alleles is high (i.e., if they are common).
+
+**Note:** the sample size can strongly influence the number of *detected* private alleles. So an important caveat of this metric is that it can be influenced by the sampling design and does not only reflect biological differences between sub-population.
+
+------------------------------------------------------------------------
 
 We can use the `private_alleles()` function of `poppr` to get information about which alleles can only be found in a population.
 
@@ -1115,10 +1127,6 @@ private_alleles_per_pop <- rowSums(private_alleles(myData) > 0)
 private_alleles_per_pop
 ```
 
-Private alleles will impact measures of differentiation between populations.
-This is especially true, if their frequency is high (i.e., if they are common).
-
-Note that the number of private alleles may be influenced by many factors, including sample size.
 
 ***What would you expect the relationship to be?***
 
@@ -1132,6 +1140,12 @@ plot(ind_per_pop, private_alleles_per_pop,
 text(y = private_alleles_per_pop,
      x = ind_per_pop,
      labels = names(ind_per_pop))
+```
+
+We created for you a small function that can also display the frequency of each private allele:
+
+```{r freq private alleles}
+private_alleles_freq(myData)
 ```
 
 ------------------------------------------------------------------------
