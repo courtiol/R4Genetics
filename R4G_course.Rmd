@@ -358,6 +358,8 @@ theplot$data[[4]]$angle <- 45
 plot(ggplot_gtable(theplot))
 ```
 
+**Geeky note 2:** this does update the plot, but only in your console. So, if you try to export the plot using e.g. `ggsave("my_plot.pdf")` the changes won't be seen in the created file. For this to work, you would need to install the package `ggplotify` and then run `ggplotify::as.ggplot(ggplot_gtable(theplot))` instead of `plot(ggplot_gtable(theplot))`.
+
 ------------------------------------------------------------------------
 
 We can see that there is missing data at several loci, and that this is particularly bad for our population *Pop7*.
@@ -495,9 +497,7 @@ Now we have 133 unique genotypes in `myData`.
 
 ------------------------------------------------------------------------
 
-**Geeky note:**
-
-If you have to remove a lot of samples, you can do it easily by replacing the previous call by:
+**Geeky note:** if you have to remove a lot of samples, you can do it easily by replacing the previous call by:
 
 ```{r dropping many loci, eval = FALSE}
 samplesToKeep <- unlist(lapply(myMLG, function(x) x[1])) # Capture first occurence for each MLG
@@ -918,9 +918,7 @@ We have already tested if these are significantly different above (while testing
 
 ------------------------------------------------------------------------
 
-**Geeky note:**
-
-To look at both the effect of the locus and the population at once, you can write some custom code:
+**Geeky note:** to look at both the effect of the locus and the population at once, you can write some custom code:
 
 ```{r heteroz matrix}
 heteroz_matrix <- do.call("cbind", lapply(seppop(myData),
