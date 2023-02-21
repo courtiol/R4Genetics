@@ -1214,7 +1214,7 @@ Most of the ones offered in `poppr` work for individuals (rather than population
 
 Let's try another measure that does not make such assumptions: the *Prevosti's distance*, which we can use with `prevosti.dist()`.
 
-In our context, the Prevosti's distance is a measure of the mean absolute difference in allele frequencies across all alleles and loci between 2 populations. It is defined as $D_{\mathrm{pop.x} \ \mathrm{pop.y}} = \frac{1}{2\times\mathrm{nLoc}}\sum^{\mathrm{nLoc}}_{j = 1}\sum^{\mathrm{nAlleles}_j}_{i = 1}|x_{ij} - y_{ij}|$, where $x_{ij}$ is the frequency of the allele $i$ at the locus $j$ in population $x$ and where $y_{ij}$ is the frequency of the allele $i$ at the locus $j$ in population $y$. 
+In our context, the Prevosti's distance is a measure of the mean absolute difference in allele frequencies across all alleles and loci between 2 individuals. It is defined as $D_{\mathrm{id.1} \ \mathrm{id.2}} = \frac{1}{2\times\mathrm{nLoc}}\sum^{\mathrm{nLoc}}_{j = 1}\sum^{\mathrm{nAlleles}_j}_{i = 1}|x_{ij} - y_{ij}|$, where $x_{ij}$ is the frequency of the allele $i$ at the locus $j$ in individual 1 (so 0, 0.5 or 1) and where $y_{ij}$ is the frequency of the allele $i$ at the locus $j$ in individual 2 (also 0, 0.5 or 1). 
 
 We again restrict our analysis to `Pop1` to begin with:
 
