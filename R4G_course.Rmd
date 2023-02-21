@@ -1334,11 +1334,11 @@ s.label(mypca$li, add.plot = TRUE, boxes = FALSE, clabel = 0.5)
 add.scatter.eig(mypca$eig[1:10], xax = 1, yax = 2, ratio = 0.15)
 ```
 
-Here is how each allele contribute to the axes while displaying only the names of the private alleles for population 6:
+Here is how each allele contribute to the axes while displaying only the names of the top 5 most frequent private alleles:
 ```{r contribution to dimension}
 s.arrow(mypca$co[, 1:2], boxes = FALSE, cpoint = 0, clabel = 0)
-private_alleles_pop6 <- colnames(private_alleles(myData))[private_alleles(myData)["Pop6", ] != 0]
-s.arrow(mypca$co[private_alleles_pop6, 1:2], boxes = FALSE, clabel = 0.8, add.plot = TRUE)
+private_alleles_highfreq <- private_alleles_freq(myData)$Private_allele[1:5]
+s.arrow(mypca$co[private_alleles_highfreq, 1:2], boxes = FALSE, clabel = 0.8, add.plot = TRUE)
 ```
 
 ***Why is the allele BM2113.132 so influential?***
