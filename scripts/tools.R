@@ -62,9 +62,11 @@ similarity <- function(x, id1, id2) {
 
 
 pairwise_similarity <- function(x, pop = NULL, as_vector = FALSE) {
+  
   if ("loci" %in% class(x)) {
     x <- pegas::loci2genind(x)
   }
+  
   if (!"genind" %in% class(x)) stop("x must be a genind object!")
   
   if (!is.null(pop)) x <- x[pop = pop]
@@ -78,20 +80,19 @@ pairwise_similarity <- function(x, pop = NULL, as_vector = FALSE) {
   nindivs <- length(indivs)
   if (nindivs < 2) stop("x needs to contain at least 2 individuals!")
   ncases <- nindivs*(nindivs - 1) / 2
-  res <- data.frame(id1 = rep(NA_character_, ncases),
-                    id2 = rep(NA_character_, ncases),
-                    distinct = rep(NA_real_, ncases),
-                    common = rep(NA_real_, ncases),
-                    total = rep(NA_real_, ncases),
-                    ratio_common = rep(NA_real_, ncases),
-                    stringsAsFactors = FALSE)
+  
+  res <- similarity(x, indivs[1], indivs[2]) ## initialisation based on first comparison
+  
   pb <- NULL
+  
   if (requireNamespace("progress", quietly = TRUE) & interactive()) {
     pb <- progress::progress_bar$new(total = ncases)
   }
+  
   if (!isNamespaceLoaded("progress")) {
     message("install the package progress if you want to see a progress bar.")
   }
+  
   i <- 1
   for (i_id1 in 2:nindivs) {
     for (i_id2 in 1:(i_id1 - 1)) {
@@ -105,7 +106,7 @@ pairwise_similarity <- function(x, pop = NULL, as_vector = FALSE) {
 
 #test <- pairwise_similarity(myData[pop = 1])
 #res <- cbind(test, ratio2 = propShared(myData[pop = 1])[cbind(test[, 1], test[, 2])])
-#plot(res$ratio, res$ratio2)
+#plot(res$ratio_common, res$ratio2)
 
 private_alleles_freq <- function(x) {
   all <- lapply(seppop(x), \(x) adegenet::makefreq(x, quiet = TRUE))
