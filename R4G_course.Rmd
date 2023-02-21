@@ -1303,11 +1303,11 @@ head(zapsmall(cor(mypca$li))[, 1:4])  ## only show head for first 4 axes
 and which capture a decreasing amount of variation of the original loci:
 
 ```{r pca explained 3}
-barplot(mypca$eig,
+barplot(mypca$eig/sum(mypca$eig),
         names.arg = colnames(mypca$li),
         cex.names = 0.5,
         col = heat.colors(length(mypca$eig)),
-        las = 2, ylab = "Inertia")
+        las = 2, ylab = "Proportion of variance explained")
 ```
 
 or the same thing expressed as the cumulated percentage of variation accounted for the axes:
