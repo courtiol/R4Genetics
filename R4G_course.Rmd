@@ -174,7 +174,7 @@ Now the data is read into `R`.
 
 If there had been a problem with the data file (e.g. incorrectly formatted), then we would have got an error message. Let's try:
 
-```{r formating error while reading, error=TRUE}
+```{r formating error while reading, error=TRUE, eval=TRUE}
 badFormat <- read.genepop(file = "data/badFormatting.gen", ncode = 3, quiet = TRUE)
 ```
 
@@ -183,9 +183,11 @@ The error message is telling us that the length of `dimnames [1]` (= number of l
 
 As you can see, `R` provides us with a clue about what the problem is.
 
+**Geeky note:** if you want to be able to use the RStudio feature "Run All Chunks Above", you should switch the previous and next chunk options to `eval=FALSE`, otherwise the error generated will break prevent all chunks below to run.
+
 Another way we can generate an error is by providing wrong arguments to the function, despite having a properly formatted file:
 
-```{r input error while reading, error=TRUE}
+```{r input error while reading, error=TRUE, eval=TRUE}
 badInput <- read.genepop(file = "data/microbov_small.gen", ncode = 2, quiet = TRUE)
 ```
 
