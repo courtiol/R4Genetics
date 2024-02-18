@@ -15,37 +15,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ------------------------------------------------------------------------
 
-The file `lynx.gen` in the data folder contains microsatellite data for eight Eurasian lynx populations.
-
-Here's a pretty pic, so we know what we're working on.
-
-![Eurasian lynx, from wikimedia.org](images/lynx.jpg)
+The file `wildboar.gen` in the data folder contains microsatellite data for wild boar populations in Berlin and Brandenburg.
 
 ------------------------------------------------------------------------
 
-This large felid used to occur throughout Europe, but was virtually extinct in central and western Europe by the 19th century.
-
-In an effort to re-establish the species, lynx were re-introduced in some EU countries in the last decades.
-
-You can see their distribution here on the IUCN web page: <https://www.iucnredlist.org/species/12519/121707666>
+Urban sprawl has resulted in the permanent presence of large mammal species in urban and suburban areas, leading to human–wildlife conflicts. Wild boar *Sus scrofa* have established a permanent presence in many cities in Europe, with the largest German urban population occurring in Berlin. 
 
 ------------------------------------------------------------------------
 
-Re-introductions frequently involve only a small number of animals. Especially, if they are dangerous!
-
-Having a small *founding population* can impact genetic diversity:
-
--   first of all, you are only introducing variation present in a few individuals
-
--   second, not all introduced animals will mate (so variation will be lost)
-
--   third, population size impacts the maintenance of variation. Small populations often lose variation due to genetic drift.
-
-`lynx.gen` includes data for lynx from natural populations as well as re-introduced populations.
-
-------------------------------------------------------------------------
-
-Not all of the re-introductions were documented. We can use genetics to try and figure out where re-introduced lynx originated.
+The colonization and population structure of the wild boar in Berlin can be investigated using genetic markers.  
 
 ------------------------------------------------------------------------
 
@@ -59,62 +37,24 @@ Clearly mark your interpretation using *Markdown* code. E.g. you can use **MY NA
 
 ------------------------------------------------------------------------
 
-**Population names**
+**Populations**
 
-The eight populations come from:
+Samples were collected in six localities in Berlin (sample ID starts with "B-") and five localities in Brandenburg (sample ID start with "BB-").
 
--   Estonia
--   Latvia
--   Poland
--   Russia
--   Slovenia
--   Croatia
--   France
--   Slovakia
-
-They are in this order in the file.
-
-**Note:** You will need to rename the populations in your `myData` accordingly.
-
-You can check that you have named them correctly, because the sample ID gives a clue as to where the samples are from.
+**Note:** You will need to rename the populations in your `myData`. 
 
 ------------------------------------------------------------------------
 
-Be careful to not automatically remove loci/pops/individuals, as you did previously with the data from `nancy.gen`. Only remove them if warranted.
+Be careful to not automatically remove loci/pops/individuals, as you did previously with the data from `lynx.gen`. Only remove them if warranted.
 
 ------------------------------------------------------------------------
 
-### **Natural vs re-introduced populations**
+### **Questions**
 
-Lynx from Estonia, Latvia, Poland, Russia and Slovakia are from natural populations.
+1.) how many populations are there in Berlin?
 
-Lynx from Slovenia, Croatia and France come from re-introduced populations.
+2.) if there is more than one, were they colonized from the same source?
 
-.
-
-**QUESTION: How do these types of populations differ?**
-
-------------------------------------------------------------------------
-
-### **Subspecies**
-
-Eurasian lynx in Europe belong to two subspecies: Lynx lynx lynx, and L. l. carpathicus.
-
-*L. l. lynx:*
-
--   Estonia
--   Latvia
--   Poland
--   Russia
-
-*L. l. carpathicus:*
-
--   Slovenia
--   Croatia
--   Slovakia
-
-.
-
-**QUESTION: Can you tell to which subspecies does the French lynx belong?**
+3.) is there anything noteworthy about the diversity of Berlin boars versus Brandenburg boars?
 
 ------------------------------------------------------------------------

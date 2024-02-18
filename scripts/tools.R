@@ -114,6 +114,8 @@ private_alleles_freq <- function(x) {
   sumlist <- lapply(all, \(x) colSums(x[, names(private)], na.rm = TRUE))
   meanlist <- lapply(all, \(x) colMeans(x[, names(private)], na.rm = TRUE))
   freqlist <- Map(\(sum, mean) mean[sum != 0], sumlist, meanlist)
+  pop_no_private <- unlist(lapply(sumlist, sum)) == 0
+  freqlist <- freqlist[!pop_no_private]
   freqlistdf <- lapply(freqlist, \(freq) data.frame(freq))
   res <- do.call("rbind", Map(\(x, pop) data.frame(Private_allele = rownames(x),
                                                    Freq = x$freq,
